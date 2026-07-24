@@ -64,7 +64,7 @@ RT.FilterSidebar = {
     providerGroups() {
       const groups = {};
       this.allProviders.forEach(p => {
-        const preset = RT.PRESET_MANUFACTURERS.find(m => m.name === p.name);
+        const preset = RT.PRESET_MANUFACTURERS.find(m => m.id === p.id);
         const country = preset ? preset.country : 'Unknown';
         if (!groups[country]) groups[country] = { country, name_zh: this.countryNameZh(country), providers: [] };
         groups[country].providers.push(p);
@@ -73,7 +73,7 @@ RT.FilterSidebar = {
       return order.map(c => groups[c]).filter(g => g && g.providers.length > 0);
     },
     otherProviders() {
-      return this.allProviders.filter(p => !RT.PRESET_MANUFACTURERS.find(m => m.name === p.name));
+      return this.allProviders.filter(p => !RT.PRESET_MANUFACTURERS.find(m => m.id === p.id));
     }
   },
   methods: {
@@ -84,13 +84,13 @@ RT.FilterSidebar = {
     isStatusChecked(s) { return this.store.filters.statuses.includes(s); },
     getProviderColor(id) {
       const p = this.allProviders.find(x => x.id === id);
-      const preset = p ? RT.PRESET_MANUFACTURERS.find(m => m.name === p.name) : null;
+      const preset = p ? RT.PRESET_MANUFACTURERS.find(m => m.id === p.id) : null;
       return preset ? preset.color : '#94a3b8';
     },
     getProviderName(id) {
       const p = this.allProviders.find(x => x.id === id);
       if (!p) return '未知';
-      const preset = RT.PRESET_MANUFACTURERS.find(m => m.name === p.name);
+      const preset = RT.PRESET_MANUFACTURERS.find(m => m.id === p.id);
       return preset ? preset.name_zh : p.name;
     },
     countByProvider(id) {

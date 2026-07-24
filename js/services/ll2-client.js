@@ -17,10 +17,11 @@ RT.ll2Client = {
       net: raw.net,
       window_start: raw.window_start,
       window_end: raw.window_end,
-      status: raw.status ? raw.status.name : null,
-      status_abbrev: raw.status ? raw.status.abbrev : null,
+      status: raw.status ? raw.status.abbrev : null,
+      status_abbrev: raw.status ? raw.status.name : null,
       provider: raw.launch_service_provider ? {
-        id: raw.launch_service_provider.id, name: raw.launch_service_provider.name
+        id: (RT.MANUFACTURER_ALIASES && RT.MANUFACTURER_ALIASES[raw.launch_service_provider.id]) || raw.launch_service_provider.id,
+        name: raw.launch_service_provider.name
       } : null,
       rocket_config: raw.rocket && raw.rocket.configuration ? {
         id: raw.rocket.configuration.id, name: raw.rocket.configuration.name

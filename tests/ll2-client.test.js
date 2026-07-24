@@ -3,7 +3,7 @@ RT_TESTS.register('ll2Client.normalizeLaunch 标准化字段', () => {
     id: 'll2-1234', name: 'Falcon 9 · Starlink',
     net: '2026-07-24T22:30:00Z',
     window_start: '2026-07-24T22:00:00Z', window_end: '2026-07-25T02:00:00Z',
-    status: { name: 'Go', abbrev: 'GO' },
+    status: { name: 'Go For Launch', abbrev: 'Go' },
     launch_service_provider: { id: 121, name: 'SpaceX' },
     rocket: { configuration: { id: 164, name: 'Falcon 9 Block 5' } },
     pad: { name: 'SLC-40', location: { name: 'CCSFS, FL, USA' } },
@@ -17,8 +17,28 @@ RT_TESTS.register('ll2Client.normalizeLaunch 标准化字段', () => {
   assert.equal(n.mission.orbit, 'LEO');
 });
 
+RT_TESTS.register('ll2Client.normalizeLaunch 关联实体别名转换', () => {
+  const rawExpace = {
+    id: 'exp-1', name: 'Kuaizhou-1A', net: '2026-08-01T00:00:00Z',
+    status: { name: 'Go For Launch', abbrev: 'Go' },
+    launch_service_provider: { id: 194, name: 'ExPace' }
+  };
+  const n1 = RT.ll2Client.normalizeLaunch(rawExpace);
+  assert.equal(n1.provider.id, 184);
+  assert.equal(n1.provider.name, 'ExPace');
+
+  const rawAriane = {
+    id: 'ari-1', name: 'Ariane 6', net: '2026-08-01T00:00:00Z',
+    status: { name: 'Go For Launch', abbrev: 'Go' },
+    launch_service_provider: { id: 115, name: 'Arianespace' }
+  };
+  const n2 = RT.ll2Client.normalizeLaunch(rawAriane);
+  assert.equal(n2.provider.id, 1044);
+  assert.equal(n2.provider.name, 'Arianespace');
+});
+
 RT_TESTS.register('ll2Client.normalizeLaunch 处理缺失字段', () => {
-  const raw = { id: 't1', name: 'Test', net: '2026-01-01T00:00:00Z', status: { name: 'TBD' } };
+  const raw = { id: 't1', name: 'Test', net: '2026-01-01T00:00:00Z', status: { name: 'To Be Determined', abbrev: 'TBD' } };
   const n = RT.ll2Client.normalizeLaunch(raw);
   assert.equal(n.status, 'TBD');
   assert.falsy(n.provider);
@@ -49,7 +69,7 @@ RT_TESTS.register('ll2Client.fetchUpcoming 调用 mock fetch 返回标准化数�
   window.fetch = async (url) => {
     calledUrl = url;
     return { ok: true, status: 200, json: async () => ({ results: [
-      { id: 't1', name: 'Test', net: '2026-08-01T00:00:00Z', status: { name: 'Go' } }
+      { id: 't1', name: 'Test', net: '2026-08-01T00:00:00Z', status: { name: 'Go For Launch', abbrev: 'Go' } }
     ] }) };
   };
   try {
