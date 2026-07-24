@@ -3,54 +3,52 @@ RT.HistoryView = {
   name: 'HistoryView',
   props: ['store'],
   template: `
-    <div class="p-4 bg-rt-bg h-full overflow-y-auto">
-      <div class="rt-card p-3 mb-3 rt-text-mono text-xs">
-        <div class="flex items-center gap-2 mb-2 rt-eyebrow">
-          <span class="rt-text-accent">▸</span> HISTORY · STATISTICS
+    <div class="p-4 h-full overflow-y-auto">
+      <div class="rt-card p-3 mb-4 rt-text-mono text-xs">
+        <div class="flex items-center gap-2 mb-3 rt-eyebrow">
+          <span class="rt-text-tertiary">▸</span> HISTORY · STATISTICS
         </div>
-        <div class="grid grid-cols-4 gap-3">
+        <div class="grid grid-cols-4 gap-4">
           <div>
-            <div class="rt-text-dim text-[9px] uppercase tracking-wider">总数</div>
-            <div class="rt-text text-lg">{{ historyList.length }}</div>
+            <div class="rt-text-faint text-[9px] uppercase tracking-wider">TOTAL</div>
+            <div class="rt-text text-lg" style="font-weight: 300;">{{ historyList.length }}</div>
           </div>
           <div>
-            <div class="rt-text-dim text-[9px] uppercase tracking-wider">成功</div>
-            <div class="text-lg" style="color: var(--rt-cyan);">{{ successCount }}</div>
+            <div class="rt-text-faint text-[9px] uppercase tracking-wider">SUCCESS</div>
+            <div class="text-lg rt-text" style="font-weight: 300;">{{ successCount }}</div>
           </div>
           <div>
-            <div class="rt-text-dim text-[9px] uppercase tracking-wider">失败</div>
-            <div class="text-lg" style="color: var(--rt-red);">{{ failureCount }}</div>
+            <div class="rt-text-faint text-[9px] uppercase tracking-wider">FAILURE</div>
+            <div class="text-lg rt-text" style="font-weight: 300;">{{ failureCount }}</div>
           </div>
           <div>
-            <div class="rt-text-dim text-[9px] uppercase tracking-wider">成功率</div>
-            <div class="text-lg" :style="{ color: successRate >= 90 ? 'var(--rt-green)' : successRate >= 70 ? 'var(--rt-yellow)' : 'var(--rt-red)' }">
-              {{ successRate }}<span class="text-xs">%</span>
-            </div>
+            <div class="rt-text-faint text-[9px] uppercase tracking-wider">RATE</div>
+            <div class="text-lg rt-text" style="font-weight: 300;">{{ successRate }}<span class="text-xs rt-text-tertiary">%</span></div>
             <div class="rt-meter mt-1">
-              <div class="rt-meter-fill" :style="{ width: successRate + '%', background: successRate >= 90 ? 'var(--rt-green)' : successRate >= 70 ? 'var(--rt-yellow)' : 'var(--rt-red)' }"></div>
+              <div class="rt-meter-fill" :style="{ width: successRate + '%' }"></div>
             </div>
           </div>
         </div>
       </div>
       <table class="w-full text-xs rt-text-mono">
-        <thead class="sticky top-0 bg-rt-bg z-10">
-          <tr class="border-b border-rt-border-bright rt-eyebrow">
-            <th class="text-left py-2">▸ 日期</th>
-            <th class="text-left py-2">火箭</th>
-            <th class="text-left py-2">厂商</th>
-            <th class="text-left py-2">载荷</th>
-            <th class="text-left py-2">结果</th>
+        <thead class="sticky top-0 z-10" style="background: var(--rt-bg);">
+          <tr class="rt-eyebrow" style="border-bottom: 1px solid var(--rt-border-bright);">
+            <th class="text-left py-2">▸ DATE</th>
+            <th class="text-left py-2">ROCKET</th>
+            <th class="text-left py-2">PROVIDER</th>
+            <th class="text-left py-2">PAYLOAD</th>
+            <th class="text-left py-2">RESULT</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="l in historyList" :key="l.id"
             @click="store.selectLaunch(l.id)"
             :class="store.selectedLaunchId === l.id ? 'rt-selected' : 'rt-row'"
-            class="cursor-pointer border-b border-rt-border">
-            <td class="py-2 rt-text-muted">{{ formatTime(l.net) }}</td>
+            class="cursor-pointer" style="border-bottom: 1px solid var(--rt-border);">
+            <td class="py-2 rt-text-secondary">{{ formatTime(l.net) }}</td>
             <td class="py-2 rt-text">{{ l.rocket_config ? l.rocket_config.name : '—' }}</td>
-            <td class="py-2"><span :style="{ color: providerColor(l) }">●</span> <span class="rt-text-muted">{{ providerName(l) }}</span></td>
-            <td class="py-2 rt-text-dim">{{ l.mission ? l.mission.name : '—' }}</td>
+            <td class="py-2"><span :style="{ color: providerColor(l), opacity: 0.8 }">●</span> <span class="rt-text-secondary">{{ providerName(l) }}</span></td>
+            <td class="py-2 rt-text-tertiary truncate" style="max-width: 120px;">{{ l.mission ? l.mission.name : '—' }}</td>
             <td class="py-2" :class="resultClass(l.status)" style="font-weight: 500;">{{ resultBadge(l.status) }}</td>
           </tr>
         </tbody>
@@ -73,7 +71,7 @@ RT.HistoryView = {
     formatTime(iso) { return RT.time.formatLocal(new Date(iso).getTime(), this.store.timezone); },
     providerColor(l) {
       const p = l.provider ? RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id) : null;
-      return p ? p.color : '#94a3b8';
+      return p ? p.color : 'rgba(255,255,255,0.4)';
     },
     providerName(l) {
       if (!l.provider) return '—';
@@ -81,10 +79,10 @@ RT.HistoryView = {
       return p ? p.name_zh : l.provider.name;
     },
     resultClass(s) {
-      if (s === 'Success') return 'rt-text-cyan';
-      if (s === 'Failure' || s === 'Partial Failure') return 'text-red-400';
-      if (s === 'In Flight') return 'text-red-400 rt-flight-pulse';
-      return 'rt-text-dim';
+      if (s === 'Success') return 'rt-text-secondary';
+      if (s === 'Failure' || s === 'Partial Failure') return 'rt-text';
+      if (s === 'In Flight') return 'rt-flight-pulse rt-text';
+      return 'rt-text-tertiary';
     },
     resultBadge(s) {
       const map = { 'Success':'✓ OK','Failure':'✗ FAIL','Partial Failure':'▲ PART','In Flight':'◉ FLIGHT' };

@@ -3,37 +3,37 @@ RT.ListView = {
   name: 'ListView',
   props: ['store'],
   template: `
-    <div class="p-4 bg-rt-bg h-full overflow-y-auto">
-      <div class="text-xs rt-text-dim mb-3 rt-text-mono flex items-center gap-2">
-        <span class="rt-text-accent">▸</span>
-        <span>共 {{ filtered.length }} 条发射</span>
-        <span class="rt-text-dim">·</span>
-        <span>覆盖至 {{ coverageDate }}</span>
+    <div class="p-4 h-full overflow-y-auto">
+      <div class="text-xs rt-text-tertiary mb-3 rt-text-mono flex items-center gap-2">
+        <span class="rt-text-tertiary">▸</span>
+        <span>{{ filtered.length }} launches</span>
+        <span class="rt-text-faint">·</span>
+        <span class="rt-text-faint">coverage {{ coverageDate }}</span>
       </div>
       <table class="w-full text-xs rt-text-mono">
-        <thead class="sticky top-0 bg-rt-bg z-10">
-          <tr class="border-b border-rt-border-bright rt-eyebrow">
-            <th class="text-left py-2 cursor-pointer hover:text-rt-accent" @click="sortBy('net')">▸ 日期</th>
-            <th class="text-left py-2">倒计时/结果</th>
-            <th class="text-left py-2 cursor-pointer hover:text-rt-accent" @click="sortBy('rocket')">火箭</th>
-            <th class="text-left py-2">厂商</th>
-            <th class="text-left py-2">发射场</th>
-            <th class="text-left py-2">载荷</th>
-            <th class="text-left py-2">状态</th>
+        <thead class="sticky top-0 z-10" style="background: var(--rt-bg);">
+          <tr class="rt-eyebrow" style="border-bottom: 1px solid var(--rt-border-bright);">
+            <th class="text-left py-2 cursor-pointer rt-row" @click="sortBy('net')">▸ DATE</th>
+            <th class="text-left py-2">COUNTDOWN</th>
+            <th class="text-left py-2 cursor-pointer rt-row" @click="sortBy('rocket')">ROCKET</th>
+            <th class="text-left py-2">PROVIDER</th>
+            <th class="text-left py-2">PAD</th>
+            <th class="text-left py-2">PAYLOAD</th>
+            <th class="text-left py-2">STATUS</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="l in sorted" :key="l.id"
             @click="store.selectLaunch(l.id)"
             :class="store.selectedLaunchId === l.id ? 'rt-selected' : 'rt-row'"
-            class="cursor-pointer border-b border-rt-border">
-            <td class="py-2 rt-text-muted">{{ formatTime(l.net) }}</td>
+            class="cursor-pointer" style="border-bottom: 1px solid var(--rt-border);">
+            <td class="py-2 rt-text-secondary">{{ formatTime(l.net) }}</td>
             <td class="py-2" :class="countdownClass(l)">{{ countdownOrResult(l) }}</td>
             <td class="py-2 rt-text">{{ l.rocket_config ? l.rocket_config.name : '—' }}</td>
-            <td class="py-2"><span :style="{ color: providerColor(l) }">●</span> <span class="rt-text-muted">{{ providerName(l) }}</span></td>
-            <td class="py-2 rt-text-dim">{{ l.pad ? l.pad.name : '—' }}</td>
-            <td class="py-2 rt-text-dim">{{ l.mission ? l.mission.name : '—' }}</td>
-            <td class="py-2" :class="statusClass(l.status)" style="font-weight: 500;">{{ statusBadge(l.status) }}</td>
+            <td class="py-2"><span :style="{ color: providerColor(l), opacity: 0.8 }">●</span> <span class="rt-text-secondary">{{ providerName(l) }}</span></td>
+            <td class="py-2 rt-text-tertiary">{{ l.pad ? l.pad.name : '—' }}</td>
+            <td class="py-2 rt-text-tertiary truncate" style="max-width: 120px;">{{ l.mission ? l.mission.name : '—' }}</td>
+            <td class="py-2" :class="statusClass(l)" style="font-weight: 500;">{{ statusBadge(l.status) }}</td>
           </tr>
         </tbody>
       </table>
@@ -83,15 +83,15 @@ RT.ListView = {
       return '— TBD';
     },
     countdownClass(l) {
-      if (l.status === 'Success') return 'rt-text-cyan';
-      if (l.status === 'Failure' || l.status === 'Partial Failure') return 'text-red-400';
-      if (l.status === 'In Flight') return 'text-red-400 rt-flight-pulse';
-      if (l.status === 'Hold') return 'text-purple-400';
-      return 'rt-text-accent';
+      if (l.status === 'Success') return 'rt-text-secondary';
+      if (l.status === 'Failure' || l.status === 'Partial Failure') return 'rt-text';
+      if (l.status === 'In Flight') return 'rt-flight-pulse rt-text';
+      if (l.status === 'Hold') return 'rt-text-tertiary';
+      return 'rt-text';
     },
     providerColor(l) {
       const p = l.provider ? RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id) : null;
-      return p ? p.color : '#94a3b8';
+      return p ? p.color : 'rgba(255,255,255,0.4)';
     },
     providerName(l) {
       if (!l.provider) return '—';
@@ -103,12 +103,12 @@ RT.ListView = {
       return map[s] || s;
     },
     statusClass(s) {
-      if (s === 'Success') return 'rt-text-cyan';
-      if (s === 'Failure' || s === 'Partial Failure') return 'text-red-400';
-      if (s === 'In Flight') return 'text-red-400 rt-flight-pulse';
-      if (s === 'Hold') return 'text-purple-400';
-      if (s === 'Go') return 'rt-text-accent';
-      return 'rt-text-yellow';
+      if (s === 'Success') return 'rt-text-secondary';
+      if (s === 'Failure' || s === 'Partial Failure') return 'rt-text';
+      if (s === 'In Flight') return 'rt-flight-pulse rt-text';
+      if (s === 'Hold') return 'rt-text-tertiary';
+      if (s === 'Go') return 'rt-text';
+      return 'rt-text-tertiary';
     }
   }
 };

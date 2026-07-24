@@ -4,50 +4,50 @@ RT.CalendarView = {
   props: ['store'],
   data() { return { expandedDay: null }; },
   template: `
-    <div class="p-4 bg-rt-bg h-full overflow-y-auto">
-      <div class="flex justify-between items-center mb-3">
-        <div class="rt-text-mono text-sm tracking-wider">
-          <span class="rt-text-accent">▸</span>
+    <div class="p-4 h-full overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <div class="rt-text-mono text-sm tracking-wider flex items-center gap-2">
+          <span class="rt-text-tertiary">▸</span>
           <span class="rt-text">{{ year }}</span>
-          <span class="rt-text-dim">.</span>
+          <span class="rt-text-faint">.</span>
           <span class="rt-text">{{ String(month + 1).padStart(2, '0') }}</span>
           <span class="rt-eyebrow ml-2">MONTH</span>
         </div>
-        <div class="flex gap-1">
-          <button @click="prevMonth" class="rt-btn">‹</button>
-          <button @click="goToday" class="rt-btn">TODAY</button>
-          <button @click="nextMonth" class="rt-btn">›</button>
+        <div class="flex gap-px border" style="border-color: var(--rt-border-bright);">
+          <button @click="prevMonth" class="rt-btn border-0">‹</button>
+          <button @click="goToday" class="rt-btn border-0">TODAY</button>
+          <button @click="nextMonth" class="rt-btn border-0">›</button>
         </div>
       </div>
-      <div class="grid grid-cols-7 gap-1 mb-1 text-xs text-center rt-eyebrow">
-        <div v-for="d in ['一','二','三','四','五','六','日']" :key="d">{{ d }}</div>
+      <div class="grid grid-cols-7 gap-px mb-2 text-center rt-eyebrow">
+        <div v-for="d in ['一','二','三','四','五','六','日']" :key="d" class="py-1">{{ d }}</div>
       </div>
-      <div class="grid grid-cols-7 gap-1 text-xs">
+      <div class="grid grid-cols-7 gap-px text-xs">
         <div v-for="cell in calendarCells" :key="cell.key"
           @click="cell.inMonth && toggleDay(cell.day)"
           :class="[cellClass(cell), expandedDay === cell.day && cell.inMonth ? 'row-span-2 z-10' : '']"
-          class="rt-cal-cell p-1 border cursor-pointer relative"
-          :style="expandedDay === cell.day && cell.inMonth ? 'min-height: 200px;' : 'min-height: 56px;'">
-          <div :class="cell.inMonth ? 'rt-text' : 'rt-text-dim'" class="rt-text-mono text-[10px]">{{ cell.day }}</div>
+          class="rt-cal-cell p-1.5 border relative"
+          :style="expandedDay === cell.day && cell.inMonth ? 'min-height: 200px;' : 'min-height: 64px;'">
+          <div :class="cell.inMonth ? 'rt-text' : 'rt-text-faint'" class="rt-text-mono text-[10px] mb-1">{{ cell.day }}</div>
           <div v-for="l in (expandedDay === cell.day && cell.inMonth ? launchesOfDay(cell) : launchesOfDay(cell).slice(0, 2))" :key="l.id"
             @click.stop="store.selectLaunch(l.id)"
-            :style="{ borderLeft: '2px solid ' + providerColor(l), background: 'rgba(' + hexToRgb(providerColor(l)) + ', 0.12)', color: providerColor(l) }"
-            class="text-[8px] px-1 py-0.5 mt-0.5 truncate rt-text-mono">
+            :style="{ borderLeft: '2px solid ' + providerColor(l), background: 'rgba(255, 255, 255, 0.04)', color: 'var(--rt-text)' }"
+            class="text-[9px] px-1.5 py-0.5 mb-0.5 truncate rt-text-mono">
             {{ shortName(l) }}
           </div>
           <div v-if="extraCount(cell) > 0 && expandedDay !== cell.day"
-            class="absolute bottom-0 right-0 text-[8px] rt-text-accent px-1"
-            style="background: rgba(255, 107, 53, 0.1); border-top: 1px solid var(--rt-border-bright); border-left: 1px solid var(--rt-border-bright);">
-            +{{ extraCount(cell) }} ▾
+            class="absolute bottom-1 right-1 text-[8px] rt-text-tertiary px-1 rt-text-mono">
+            +{{ extraCount(cell) }}
           </div>
           <div v-if="expandedDay === cell.day && cell.inMonth"
-            class="absolute top-0 right-0 text-[10px] rt-text-dim px-1 cursor-pointer"
-            style="background: var(--rt-bg-panel);">✕</div>
+            class="absolute top-1 right-1 text-[10px] rt-text-faint cursor-pointer px-1"
+            @click.stop="expandedDay = null">✕</div>
         </div>
       </div>
-      <div class="flex gap-3 mt-4 text-[10px] rt-text-muted flex-wrap rt-text-mono">
+      <div class="flex gap-3 mt-4 text-[10px] rt-text-tertiary flex-wrap rt-text-mono flex items-center">
+        <span class="rt-text-faint">// LEGEND</span>
         <span v-for="l in legend" :key="l.name" class="flex items-center gap-1">
-          <span :style="{ display: 'inline-block', width: '6px', height: '6px', background: l.color, boxShadow: '0 0 4px ' + l.color }"></span>
+          <span :style="{ display: 'inline-block', width: '5px', height: '5px', background: l.color, opacity: 0.7 }"></span>
           <span>{{ l.name }}</span>
         </span>
       </div>
@@ -84,14 +84,14 @@ RT.CalendarView = {
   },
   methods: {
     cellClass(cell) {
-      if (!cell.inMonth) return 'bg-rt-bg border-rt-border';
+      if (!cell.inMonth) return 'bg-transparent border-transparent';
       const today = new Date();
       const isToday = cell.day === today.getDate() && this.month === today.getMonth() && this.year === today.getFullYear();
       const launches = this.launchesOfDay(cell);
       const isUpcoming72h = launches.some(l => RT.time.isWithin72h(new Date(l.net).getTime(), Date.now()));
       return [
-        isToday ? 'border-rt-accent border-2' : 'border-rt-border',
-        isUpcoming72h && !isToday ? 'border-rt-yellow' : ''
+        isToday ? 'border-rt-border-glow' : 'border-rt-border',
+        isUpcoming72h && !isToday ? 'border-rt-border-bright' : ''
       ].join(' ');
     },
     launchesOfDay(cell) {
@@ -110,25 +110,12 @@ RT.CalendarView = {
       const parts = l.name.split(' · ');
       return parts.length > 1 ? parts[0] + ' · ' + parts[1] : l.name;
     },
-    providerColor(l) { const p = this.findPreset(l); return p ? p.color : '#94a3b8'; },
+    providerColor(l) { const p = this.findPreset(l); return p ? p.color : 'rgba(255,255,255,0.4)'; },
     findPreset(l) {
       if (!l.provider) return null;
       return RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id);
     },
-    hexToRgb(hex) {
-      const h = hex.replace('#', '');
-      const r = parseInt(h.substr(0, 2), 16);
-      const g = parseInt(h.substr(2, 2), 16);
-      const b = parseInt(h.substr(4, 2), 16);
-      return `${r}, ${g}, ${b}`;
-    },
-    selectDay(day) {
-      const list = this.launchesOfDay({ day, inMonth: true });
-      if (list.length > 0) this.store.selectLaunch(list[0].id);
-    },
-    toggleDay(day) {
-      this.expandedDay = (this.expandedDay === day) ? null : day;
-    },
+    toggleDay(day) { this.expandedDay = (this.expandedDay === day) ? null : day; },
     prevMonth() {
       let m = this.month - 1, y = this.year;
       if (m < 0) { m = 11; y--; }

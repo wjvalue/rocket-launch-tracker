@@ -3,24 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚀 火箭发射追踪 · 任务控制台</title>
+  <title>🚀 火箭发射追踪 · 深空</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Tailwind 暗色模式配置
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            'rt-bg': '#070b15',
-            'rt-panel': '#0f1525',
-            'rt-card': '#161e33',
-            'rt-border': '#1e2a45',
-            'rt-border-bright': '#2d3a5e',
-            'rt-accent': '#ff6b35',
-            'rt-cyan': '#22d3ee',
-            'rt-text': '#e6edf3',
-            'rt-muted': '#8b9bb4',
-            'rt-dim': '#5a6a85',
+            'rt-bg': '#0a0e17',
+            'rt-panel': 'rgba(15, 22, 35, 0.72)',
+            'rt-card': 'rgba(25, 35, 50, 0.5)',
+            'rt-border': 'rgba(255, 255, 255, 0.06)',
+            'rt-border-bright': 'rgba(255, 255, 255, 0.12)',
+            'rt-text': 'rgba(255, 255, 255, 0.95)',
+            'rt-secondary': 'rgba(255, 255, 255, 0.6)',
+            'rt-tertiary': 'rgba(255, 255, 255, 0.4)',
+            'rt-faint': 'rgba(255, 255, 255, 0.22)',
           }
         }
       }
@@ -33,11 +31,12 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <div id="cdn-fallback" style="display:none; padding: 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; background: #070b15; color: #ff6b35; min-height: 100vh;">
-    <h1 style="font-size: 1.5rem; letter-spacing: 0.1em;">⚠ SIGNAL LOST</h1>
-    <p style="color: #8b9bb4; margin-top: 1rem;">基础库加载失败 · 请检查网络连接后刷新</p>
-    <p style="color: #5a6a85; margin-top: 0.5rem; font-size: 0.75rem;">Vue 3 / Tailwind CSS / JetBrains Mono 需通过 CDN 加载</p>
+  <div id="cdn-fallback" style="display:none; padding: 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; background: #0a0e17; color: rgba(255,255,255,0.95); min-height: 100vh;">
+    <h1 style="font-size: 1.5rem; letter-spacing: 0.16em; font-weight: 300;">SIGNAL LOST</h1>
+    <p style="color: rgba(255,255,255,0.6); margin-top: 1rem; font-size: 0.875rem;">基础库加载失败 · 请检查网络连接后刷新</p>
+    <p style="color: rgba(255,255,255,0.4); margin-top: 0.5rem; font-size: 0.75rem; letter-spacing: 0.05em;">Vue 3 / Tailwind CSS / JetBrains Mono · CDN required</p>
   </div>
+  <canvas id="particle-bg"></canvas>
   <div id="app"></div>
 
   <script src="js/data/manufacturers.js"></script>
@@ -47,6 +46,7 @@
   <script src="js/services/ll2-client.js"></script>
   <script src="js/utils/time.js"></script>
   <script src="js/store.js"></script>
+  <script src="js/effects/particle.js"></script>
   <script src="js/components/TopBar.js"></script>
   <script src="js/components/FilterSidebar.js"></script>
   <script src="js/components/CalendarView.js"></script>
@@ -60,6 +60,9 @@
     if (typeof Vue === 'undefined') {
       document.getElementById('cdn-fallback').style.display = 'block';
       document.getElementById('app').style.display = 'none';
+    } else {
+      // 启动粒子背景
+      RT.ParticleField.init('particle-bg');
     }
   </script>
 </body>
