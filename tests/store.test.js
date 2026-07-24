@@ -4,9 +4,7 @@ RT_TESTS.register('store 初始状态正确', () => {
   assert.equal(s.view, 'calendar');
   assert.equal(s.timezone, 'Asia/Shanghai');
   assert.equal(s.filters.providerIds.length, 0);
-  assert.equal(s.filters.statuses.length, 2);
-  assert.equal(s.filters.statuses.includes('Go'), true);
-  assert.equal(s.filters.statuses.includes('In Flight'), true);
+  assert.equal(s.filters.statuses.length, 0);
   assert.falsy(s.selectedLaunchId);
 });
 
@@ -38,7 +36,7 @@ RT_TESTS.register('store.filteredLaunches 按状态筛选', () => {
     { id: 't2', net: '2026-07-20T00:00:00Z', status: 'Success' },
     { id: 't3', net: '2026-07-26T00:00:00Z', status: 'In Flight' }
   ]);
-  assert.equal(s.filteredLaunches.length, 2);
+  assert.equal(s.filteredLaunches.length, 3);
   s.setFilterStatuses(['Success']);
   assert.equal(s.filteredLaunches.length, 1);
 });

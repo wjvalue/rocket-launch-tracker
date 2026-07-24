@@ -9,7 +9,7 @@ RT.store = {
       selectedLaunchId: null,
       filters: {
         providerIds: [],
-        statuses: ['Go', 'In Flight']
+        statuses: []
       },
       meta: {
         online: (typeof navigator !== 'undefined') ? navigator.onLine : true,

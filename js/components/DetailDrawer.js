@@ -91,7 +91,7 @@ RT.DetailDrawer = {
     formatTime(iso) { return RT.time.formatLocal(new Date(iso).getTime(), this.store.timezone); },
     providerName(l) {
       if (!l.provider) return '—';
-      const p = RT.PRESET_MANUFACTURERS.find(m => m.name === l.provider.name);
+      const p = RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id);
       return p ? p.name_zh : l.provider.name;
     },
     statusText(l) {

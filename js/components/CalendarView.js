@@ -97,7 +97,7 @@ RT.CalendarView = {
     providerColor(l) { const p = this.findPreset(l); return p ? p.color : '#94a3b8'; },
     findPreset(l) {
       if (!l.provider) return null;
-      return RT.PRESET_MANUFACTURERS.find(m => m.name === l.provider.name);
+      return RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id);
     },
     selectDay(day) {
       const list = this.launchesOfDay({ day, inMonth: true });

@@ -66,17 +66,16 @@ RT.ll2Client = {
         return data.results.map(l => this.normalizeLaunch(l));
       } catch (e) {
         lastError = e;
-        if (e.name === 'RateLimitError' || e.name === 'FetchError') throw e;
+        if (e.name === 'RateLimitError') throw e;
         if (attempt < this.MAX_RETRIES) {
           await new Promise(r => setTimeout(r, this.RETRY_DELAYS[attempt]));
           continue;
         }
-        if (e instanceof TypeError) {
-          const err = new Error(e.message);
-          err.name = 'FetchError';
-          throw err;
-        }
-        throw e;
+        // 重试耗尽:所有非限速错误统一转为 FetchError
+        const err = new Error(e.message);
+        err.name = 'FetchError';
+        err.original = e;
+        throw err;
       }
     }
     throw lastError;

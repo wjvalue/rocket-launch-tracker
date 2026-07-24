@@ -46,12 +46,12 @@ RT.HistoryView = {
   methods: {
     formatTime(iso) { return RT.time.formatLocal(new Date(iso).getTime(), this.store.timezone); },
     providerColor(l) {
-      const p = l.provider ? RT.PRESET_MANUFACTURERS.find(m => m.name === l.provider.name) : null;
+      const p = l.provider ? RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id) : null;
       return p ? p.color : '#94a3b8';
     },
     providerName(l) {
       if (!l.provider) return '—';
-      const p = RT.PRESET_MANUFACTURERS.find(m => m.name === l.provider.name);
+      const p = RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id);
       return p ? p.name_zh : l.provider.name;
     },
     resultBadge(s) {
