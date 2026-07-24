@@ -32,8 +32,20 @@ document.addEventListener('DOMContentLoaded', () => {
       store.meta.cooldownUntil = Date.now() + 5 * 60 * 1000;
     } catch (e) {
       store.meta.error = e;
-      if (e.name === 'RateLimitError') store.meta.error = new Error('LL2 限速中,使用缓存数据');
-      else if (e.name === 'FetchError') store.meta.online = false;
+      if (e.name === 'RateLimitError') {
+        store.meta.error = new Error('LL2 限速中,使用缓存数据');
+        // 限速时:若无缓存数据,加载种子数据兜底
+        if (store.launches.length === 0 && RT.SEED_LAUNCHES) {
+          store.setLaunches(RT.SEED_LAUNCHES);
+        }
+      }
+      else if (e.name === 'FetchError') {
+        store.meta.online = false;
+        // 离线时:若无缓存数据,加载种子数据兜底
+        if (store.launches.length === 0 && RT.SEED_LAUNCHES) {
+          store.setLaunches(RT.SEED_LAUNCHES);
+        }
+      }
     } finally {
       store.meta.loading = false;
     }
