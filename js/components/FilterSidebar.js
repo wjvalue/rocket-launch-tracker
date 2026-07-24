@@ -18,15 +18,6 @@ RT.FilterSidebar = {
             <span class="text-slate-400 ml-auto">({{ countByProvider(p.id) }})</span>
           </div>
         </div>
-        <div v-if="otherProviders.length > 0">
-          <div class="font-semibold text-slate-700 mt-2 mb-1">其他</div>
-          <div v-for="p in otherProviders" :key="p.id"
-            @click="store.toggleProvider(p.id)"
-            class="cursor-pointer py-0.5 flex items-center gap-1">
-            <span :style="{ color: getProviderColor(p.id) }">{{ isProviderChecked(p.id) ? '☑' : '☐' }}</span>
-            <span>{{ p.name }}</span>
-          </div>
-        </div>
       </div>
 
       <div class="text-xs text-slate-500 uppercase tracking-wide mt-4 mb-2">状态</div>
@@ -59,39 +50,44 @@ RT.FilterSidebar = {
       const list = this.store.providersFromLaunches();
       if (!this.search) return list;
       const s = this.search.toLowerCase();
-      return list.filter(p => p.name.toLowerCase().includes(s));
+      // 同时匹配预设中文名与原始名称
+      return list.filter(p => {
+        const mfr = RT.getManufacturer(p.id);
+        const names = [p.name, mfr.name_zh || '', mfr.name || ''].join(' ').toLowerCase();
+        return names.includes(s);
+      });
     },
     providerGroups() {
       const groups = {};
       this.allProviders.forEach(p => {
-        const preset = RT.PRESET_MANUFACTURERS.find(m => m.id === p.id);
-        const country = preset ? preset.country : 'Unknown';
+        const mfr = RT.getManufacturer(p.id);
+        const country = mfr.country || 'Unknown';
         if (!groups[country]) groups[country] = { country, name_zh: this.countryNameZh(country), providers: [] };
         groups[country].providers.push(p);
       });
-      const order = ['USA', 'China', 'Europe', 'Russia', 'Unknown'];
+      // 按国家排序,中国/美国优先
+      const order = ['China', 'USA', 'Europe', 'Russia', 'Japan', 'India', 'Korea', 'Unknown'];
       return order.map(c => groups[c]).filter(g => g && g.providers.length > 0);
-    },
-    otherProviders() {
-      return this.allProviders.filter(p => !RT.PRESET_MANUFACTURERS.find(m => m.id === p.id));
     }
   },
   methods: {
     countryNameZh(code) {
-      return { USA: '美国', China: '中国', Europe: '欧洲', Russia: '俄罗斯', Unknown: '其他' }[code] || code;
+      return {
+        China: '中国', USA: '美国', Europe: '欧洲', Russia: '俄罗斯',
+        Japan: '日本', India: '印度', Korea: '韩国', Unknown: '其他'
+      }[code] || code;
     },
     isProviderChecked(id) { return this.store.filters.providerIds.includes(id); },
     isStatusChecked(s) { return this.store.filters.statuses.includes(s); },
     getProviderColor(id) {
-      const p = this.allProviders.find(x => x.id === id);
-      const preset = p ? RT.PRESET_MANUFACTURERS.find(m => m.id === p.id) : null;
-      return preset ? preset.color : '#94a3b8';
+      const mfr = RT.getManufacturer(id);
+      return mfr.color || '#94a3b8';
     },
     getProviderName(id) {
       const p = this.allProviders.find(x => x.id === id);
       if (!p) return '未知';
-      const preset = RT.PRESET_MANUFACTURERS.find(m => m.id === p.id);
-      return preset ? preset.name_zh : p.name;
+      const mfr = RT.getManufacturer(p.id);
+      return mfr.isFallback ? p.name : (mfr.name_zh || p.name);
     },
     countByProvider(id) {
       return this.store.launches.filter(l => l.provider && l.provider.id === id).length;

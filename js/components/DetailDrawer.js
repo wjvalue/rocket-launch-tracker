@@ -43,7 +43,7 @@ RT.DetailDrawer = {
           </div>
           <div v-else class="text-slate-400">规格数据待补充,欢迎补充到 <code>rocket-specs.js</code></div>
         </div>
-        <div v-if="spec" class="text-[10px] text-slate-400 mb-3">规格数据更新于 {{ RT.ROCKET_SPECS_UPDATED.slice(0, 7) }}</div>
+        <div v-if="spec" class="text-[10px] text-slate-400 mb-3">规格数据更新于 {{ specsUpdated }}</div>
         <div class="text-[10px] text-amber-700 uppercase tracking-wide mb-1">载荷</div>
         <div class="bg-white border border-amber-200 rounded p-2 text-xs mb-3">
           <div v-if="launch.mission">
@@ -72,6 +72,7 @@ RT.DetailDrawer = {
   `,
   computed: {
     launch() { return this.store.selectedLaunch; },
+    specsUpdated() { return (RT.ROCKET_SPECS_UPDATED || '').slice(0, 7); },
     spec() {
       if (!this.launch || !this.launch.rocket_config) return null;
       return RT.getRocketSpec(this.launch.rocket_config.id, this.launch.rocket_config.name);
