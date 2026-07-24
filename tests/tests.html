@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>RT 测试运行器</title>
+  <style>
+    body { font-family: monospace; padding: 1rem; max-width: 900px; margin: 0 auto; }
+    .pass { color: #10b981; padding: 4px 0; }
+    .fail { color: #dc2626; padding: 4px 0; }
+    .fail pre { background: #fef2f2; padding: 8px; border-radius: 4px; margin: 4px 0; font-size: 12px; }
+    .summary { margin-top: 16px; padding-top: 12px; border-top: 2px solid #e2e8f0; font-weight: bold; }
+    h1 { color: #1e293b; }
+  </style>
+</head>
+<body>
+  <h1>🚀 火箭追踪 · 测试运行器</h1>
+  <div id="test-output"></div>
+  <script src="run.js"></script>
+  <script src="../js/data/manufacturers.js"></script>
+  <script src="../js/data/rocket-specs.js"></script>
+  <script src="../js/services/cache.js"></script>
+  <script src="../js/services/ll2-client.js"></script>
+  <script src="../js/utils/time.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="cache.test.js"></script>
+  <script src="ll2-client.test.js"></script>
+  <script src="time.test.js"></script>
+  <script src="store.test.js"></script>
+  <script>RT_TESTS.run();</script>
+</body>
+</html>
