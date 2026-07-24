@@ -68,26 +68,38 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="flex flex-1 overflow-hidden relative">
           <filter-sidebar v-if="store.ui.screenWidth >= 1024" :store="store" />
           <teleport to="body" v-else>
-            <div v-if="store.ui.sidebarOpen" class="fixed inset-0 bg-black bg-opacity-50 z-40" @click="store.ui.sidebarOpen = false">
+            <div v-if="store.ui.sidebarOpen" class="fixed inset-0 z-40" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);" @click="store.ui.sidebarOpen = false">
               <div class="absolute left-0 top-0 bottom-0" @click.stop><filter-sidebar :store="store" /></div>
             </div>
           </teleport>
           <main-panel :store="store" />
           <detail-drawer v-if="store.ui.screenWidth >= 1024 && !store.ui.drawerFullscreen" :store="store" />
           <teleport to="body" v-else>
-            <div v-if="store.ui.drawerOpen" class="fixed inset-0 bg-white z-50 overflow-y-auto">
+            <div v-if="store.ui.drawerOpen" class="fixed inset-0 z-50 overflow-y-auto" style="background: var(--rt-bg-panel);">
               <detail-drawer :store="store" :fullscreen="true" />
             </div>
           </teleport>
         </div>
-        <div v-if="store.meta.loading" class="fixed top-16 right-4 bg-blue-500 text-white px-3 py-1 rounded text-xs">⏳ 加载中...</div>
-        <div v-if="store.meta.error && !store.meta.online" class="fixed top-16 right-4 bg-red-500 text-white px-3 py-1 rounded text-xs">⚠ 离线 · 最后同步 {{ formatTime(store.meta.lastFetchedAt) }}</div>
-        <div v-else-if="store.meta.error" class="fixed top-16 right-4 bg-amber-500 text-white px-3 py-1 rounded text-xs">⏸ {{ store.meta.error.message }}</div>
+        <div v-if="store.meta.loading" class="fixed top-16 right-4 z-50 px-3 py-1.5 text-xs rt-text-mono flex items-center gap-2"
+          style="background: var(--rt-bg-card); border: 1px solid var(--rt-accent); color: var(--rt-accent);">
+          <span class="rt-pulse-dot rt-pulse-amber"></span>
+          <span>SYNCING...</span>
+        </div>
+        <div v-if="store.meta.error && !store.meta.online" class="fixed top-16 right-4 z-50 px-3 py-1.5 text-xs rt-text-mono flex items-center gap-2"
+          style="background: var(--rt-bg-card); border: 1px solid var(--rt-red); color: var(--rt-red);">
+          <span class="rt-pulse-dot rt-pulse-red"></span>
+          <span>OFFLINE · LAST SYNC {{ formatTime(store.meta.lastFetchedAt) }}</span>
+        </div>
+        <div v-else-if="store.meta.error" class="fixed top-16 right-4 z-50 px-3 py-1.5 text-xs rt-text-mono flex items-center gap-2"
+          style="background: var(--rt-bg-card); border: 1px solid var(--rt-yellow); color: var(--rt-yellow);">
+          <span class="rt-pulse-dot rt-pulse-amber"></span>
+          <span>{{ store.meta.error.message }}</span>
+        </div>
       </div>
     `,
     methods: {
       onRefresh,
-      formatTime(ts) { return ts ? RT.time.formatLocal(ts, this.store.timezone) : '从未'; }
+      formatTime(ts) { return ts ? RT.time.formatLocal(ts, this.store.timezone) : 'NEVER'; }
     }
   });
 

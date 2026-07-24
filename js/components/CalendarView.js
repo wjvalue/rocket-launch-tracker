@@ -4,38 +4,51 @@ RT.CalendarView = {
   props: ['store'],
   data() { return { expandedDay: null }; },
   template: `
-    <div class="p-4 bg-white h-full overflow-y-auto">
+    <div class="p-4 bg-rt-bg h-full overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
-        <div class="font-semibold text-sm">{{ year }} 年 {{ month + 1 }} 月</div>
-        <div class="text-xs flex gap-1">
-          <button @click="prevMonth" class="bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">‹</button>
-          <button @click="goToday" class="bg-slate-100 px-3 py-1 rounded hover:bg-slate-200">今日</button>
-          <button @click="nextMonth" class="bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">›</button>
+        <div class="rt-text-mono text-sm tracking-wider">
+          <span class="rt-text-accent">▸</span>
+          <span class="rt-text">{{ year }}</span>
+          <span class="rt-text-dim">.</span>
+          <span class="rt-text">{{ String(month + 1).padStart(2, '0') }}</span>
+          <span class="rt-eyebrow ml-2">MONTH</span>
+        </div>
+        <div class="flex gap-1">
+          <button @click="prevMonth" class="rt-btn">‹</button>
+          <button @click="goToday" class="rt-btn">TODAY</button>
+          <button @click="nextMonth" class="rt-btn">›</button>
         </div>
       </div>
-      <div class="grid grid-cols-7 gap-1 mb-1 text-xs text-slate-400 text-center">
+      <div class="grid grid-cols-7 gap-1 mb-1 text-xs text-center rt-eyebrow">
         <div v-for="d in ['一','二','三','四','五','六','日']" :key="d">{{ d }}</div>
       </div>
       <div class="grid grid-cols-7 gap-1 text-xs">
         <div v-for="cell in calendarCells" :key="cell.key"
           @click="cell.inMonth && toggleDay(cell.day)"
-          :class="[cellClass(cell), expandedDay === cell.day && cell.inMonth ? 'row-span-2 z-10 shadow-lg' : '']"
-          class="p-1 border cursor-pointer relative"
+          :class="[cellClass(cell), expandedDay === cell.day && cell.inMonth ? 'row-span-2 z-10' : '']"
+          class="rt-cal-cell p-1 border cursor-pointer relative"
           :style="expandedDay === cell.day && cell.inMonth ? 'min-height: 200px;' : 'min-height: 56px;'">
-          <div :class="cell.inMonth ? '' : 'text-slate-300'">{{ cell.day }}</div>
+          <div :class="cell.inMonth ? 'rt-text' : 'rt-text-dim'" class="rt-text-mono text-[10px]">{{ cell.day }}</div>
           <div v-for="l in (expandedDay === cell.day && cell.inMonth ? launchesOfDay(cell) : launchesOfDay(cell).slice(0, 2))" :key="l.id"
             @click.stop="store.selectLaunch(l.id)"
-            :style="{ background: providerColor(l) }"
-            class="text-white text-[8px] px-1 py-0.5 rounded mt-0.5 truncate">
+            :style="{ borderLeft: '2px solid ' + providerColor(l), background: 'rgba(' + hexToRgb(providerColor(l)) + ', 0.12)', color: providerColor(l) }"
+            class="text-[8px] px-1 py-0.5 mt-0.5 truncate rt-text-mono">
             {{ shortName(l) }}
           </div>
-          <div v-if="extraCount(cell) > 0 && expandedDay !== cell.day" class="absolute bottom-0 right-0 text-[8px] text-slate-500 bg-white/80 px-1 rounded">+{{ extraCount(cell) }} 展开</div>
-          <div v-if="expandedDay === cell.day && cell.inMonth" class="absolute top-0 right-0 text-[8px] text-slate-400 bg-white/80 px-1 rounded">✕</div>
+          <div v-if="extraCount(cell) > 0 && expandedDay !== cell.day"
+            class="absolute bottom-0 right-0 text-[8px] rt-text-accent px-1"
+            style="background: rgba(255, 107, 53, 0.1); border-top: 1px solid var(--rt-border-bright); border-left: 1px solid var(--rt-border-bright);">
+            +{{ extraCount(cell) }} ▾
+          </div>
+          <div v-if="expandedDay === cell.day && cell.inMonth"
+            class="absolute top-0 right-0 text-[10px] rt-text-dim px-1 cursor-pointer"
+            style="background: var(--rt-bg-panel);">✕</div>
         </div>
       </div>
-      <div class="flex gap-3 mt-4 text-[10px] text-slate-600 flex-wrap">
-        <span v-for="l in legend" :key="l.name">
-          <span :style="{ display: 'inline-block', width: '8px', height: '8px', background: l.color, borderRadius: '2px', marginRight: '4px' }"></span>{{ l.name }}
+      <div class="flex gap-3 mt-4 text-[10px] rt-text-muted flex-wrap rt-text-mono">
+        <span v-for="l in legend" :key="l.name" class="flex items-center gap-1">
+          <span :style="{ display: 'inline-block', width: '6px', height: '6px', background: l.color, boxShadow: '0 0 4px ' + l.color }"></span>
+          <span>{{ l.name }}</span>
         </span>
       </div>
     </div>
@@ -71,14 +84,14 @@ RT.CalendarView = {
   },
   methods: {
     cellClass(cell) {
-      if (!cell.inMonth) return 'bg-slate-50';
+      if (!cell.inMonth) return 'bg-rt-bg border-rt-border';
       const today = new Date();
       const isToday = cell.day === today.getDate() && this.month === today.getMonth() && this.year === today.getFullYear();
       const launches = this.launchesOfDay(cell);
       const isUpcoming72h = launches.some(l => RT.time.isWithin72h(new Date(l.net).getTime(), Date.now()));
       return [
-        isToday ? 'bg-blue-100 border-blue-500 border-2 font-semibold' : 'bg-slate-50 border-slate-200',
-        isUpcoming72h && !isToday ? 'bg-amber-50 border-amber-400 border-2' : ''
+        isToday ? 'border-rt-accent border-2' : 'border-rt-border',
+        isUpcoming72h && !isToday ? 'border-rt-yellow' : ''
       ].join(' ');
     },
     launchesOfDay(cell) {
@@ -101,6 +114,13 @@ RT.CalendarView = {
     findPreset(l) {
       if (!l.provider) return null;
       return RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id);
+    },
+    hexToRgb(hex) {
+      const h = hex.replace('#', '');
+      const r = parseInt(h.substr(0, 2), 16);
+      const g = parseInt(h.substr(2, 2), 16);
+      const b = parseInt(h.substr(4, 2), 16);
+      return `${r}, ${g}, ${b}`;
     },
     selectDay(day) {
       const list = this.launchesOfDay({ day, inMonth: true });

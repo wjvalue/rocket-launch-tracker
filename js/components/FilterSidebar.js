@@ -3,29 +3,34 @@ RT.FilterSidebar = {
   name: 'FilterSidebar',
   props: ['store'],
   template: `
-    <aside class="bg-slate-50 border-r border-slate-200 p-4 overflow-y-auto" style="width: 220px;">
-      <div class="text-xs text-slate-500 uppercase tracking-wide mb-2">厂商筛选</div>
-      <input v-model="search" placeholder="搜索厂商..."
-        class="w-full mb-3 px-2 py-1 text-xs border border-slate-200 rounded">
-      <div class="bg-white border border-slate-200 rounded p-2 text-xs">
-        <div v-for="group in providerGroups" :key="group.country">
-          <div class="font-semibold text-slate-700 mt-2 mb-1">{{ group.name_zh }}</div>
+    <aside class="bg-rt-panel border-r border-rt-border p-3 overflow-y-auto" style="width: 220px;">
+      <div class="rt-eyebrow mb-2">// PROVIDERS</div>
+      <input v-model="search" placeholder="search..." class="rt-input w-full mb-3">
+      <div class="rt-card p-2">
+        <div v-for="group in providerGroups" :key="group.country" class="mb-2">
+          <div class="flex items-center gap-1.5 mt-1.5 mb-1">
+            <span class="text-[8px]" :style="{ color: group.color }">▶</span>
+            <span class="rt-eyebrow" :style="{ color: group.color }">{{ group.name_zh }}</span>
+            <span class="rt-text-dim text-[9px] ml-auto">[{{ group.providers.length }}]</span>
+          </div>
           <div v-for="p in group.providers" :key="p.id"
             @click="store.toggleProvider(p.id)"
-            class="cursor-pointer py-0.5 flex items-center gap-1">
-            <span :style="{ color: getProviderColor(p.id) }">{{ isProviderChecked(p.id) ? '☑' : '☐' }}</span>
-            <span>{{ getProviderName(p.id) }}</span>
-            <span class="text-slate-400 ml-auto">({{ countByProvider(p.id) }})</span>
+            class="cursor-pointer py-0.5 px-1 flex items-center gap-1.5 text-xs rt-row"
+            :class="isProviderChecked(p.id) ? 'rt-text-accent' : 'rt-text-muted'">
+            <span :style="{ color: getProviderColor(p.id) }">{{ isProviderChecked(p.id) ? '◆' : '◇' }}</span>
+            <span class="truncate">{{ getProviderName(p.id) }}</span>
+            <span class="rt-text-dim ml-auto text-[10px]">{{ countByProvider(p.id) }}</span>
           </div>
         </div>
       </div>
 
-      <div class="text-xs text-slate-500 uppercase tracking-wide mt-4 mb-2">状态</div>
-      <div class="bg-white border border-slate-200 rounded p-2 text-xs">
+      <div class="rt-eyebrow mt-4 mb-2">// STATUS</div>
+      <div class="rt-card p-2">
         <div v-for="s in statusOptions" :key="s.value"
           @click="store.toggleStatus(s.value)"
-          class="cursor-pointer py-0.5 flex items-center gap-1">
-          <span>{{ isStatusChecked(s.value) ? '☑' : '☐' }}</span>
+          class="cursor-pointer py-0.5 px-1 flex items-center gap-1.5 text-xs rt-row"
+          :class="isStatusChecked(s.value) ? 'rt-text-accent' : 'rt-text-muted'">
+          <span :style="{ color: s.color }">{{ isStatusChecked(s.value) ? '◆' : '◇' }}</span>
           <span>{{ s.label }}</span>
         </div>
       </div>
@@ -35,13 +40,13 @@ RT.FilterSidebar = {
     return {
       search: '',
       statusOptions: [
-        { value: 'TBD', label: '计划中' },
-        { value: 'Go', label: '倒计时' },
-        { value: 'In Flight', label: '发射中' },
-        { value: 'Success', label: '已完成' },
-        { value: 'Failure', label: '失败' },
-        { value: 'Partial Failure', label: '部分失败' },
-        { value: 'Hold', label: '暂停' }
+        { value: 'TBD', label: 'TBD 计划中', color: '#fbbf24' },
+        { value: 'Go', label: 'GO 倒计时', color: '#10b981' },
+        { value: 'In Flight', label: 'FLIGHT 发射中', color: '#ef4444' },
+        { value: 'Success', label: 'OK 已完成', color: '#22d3ee' },
+        { value: 'Failure', label: 'FAIL 失败', color: '#dc2626' },
+        { value: 'Partial Failure', label: 'PART 部分失败', color: '#f97316' },
+        { value: 'Hold', label: 'HOLD 暂停', color: '#a855f7' }
       ]
     };
   },
@@ -50,7 +55,6 @@ RT.FilterSidebar = {
       const list = this.store.providersFromLaunches();
       if (!this.search) return list;
       const s = this.search.toLowerCase();
-      // 同时匹配预设中文名与原始名称
       return list.filter(p => {
         const mfr = RT.getManufacturer(p.id);
         const names = [p.name, mfr.name_zh || '', mfr.name || ''].join(' ').toLowerCase();
@@ -59,13 +63,16 @@ RT.FilterSidebar = {
     },
     providerGroups() {
       const groups = {};
+      const colors = {
+        China: '#dc2626', USA: '#3b82f6', Europe: '#fbbf24', Russia: '#ef4444',
+        Japan: '#06b6d4', India: '#f59e0b', Korea: '#0d9488', Unknown: '#5a6a85'
+      };
       this.allProviders.forEach(p => {
         const mfr = RT.getManufacturer(p.id);
         const country = mfr.country || 'Unknown';
-        if (!groups[country]) groups[country] = { country, name_zh: this.countryNameZh(country), providers: [] };
+        if (!groups[country]) groups[country] = { country, name_zh: this.countryNameZh(country), color: colors[country] || '#5a6a85', providers: [] };
         groups[country].providers.push(p);
       });
-      // 按国家排序,中国/美国优先
       const order = ['China', 'USA', 'Europe', 'Russia', 'Japan', 'India', 'Korea', 'Unknown'];
       return order.map(c => groups[c]).filter(g => g && g.providers.length > 0);
     }
@@ -73,8 +80,8 @@ RT.FilterSidebar = {
   methods: {
     countryNameZh(code) {
       return {
-        China: '中国', USA: '美国', Europe: '欧洲', Russia: '俄罗斯',
-        Japan: '日本', India: '印度', Korea: '韩国', Unknown: '其他'
+        China: '中国 CN', USA: '美国 US', Europe: '欧洲 EU', Russia: '俄罗斯 RU',
+        Japan: '日本 JP', India: '印度 IN', Korea: '韩国 KR', Unknown: '其他 ??'
       }[code] || code;
     },
     isProviderChecked(id) { return this.store.filters.providerIds.includes(id); },

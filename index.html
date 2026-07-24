@@ -3,15 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚀 火箭发射追踪</title>
+  <title>🚀 火箭发射追踪 · 任务控制台</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind 暗色模式配置
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'rt-bg': '#070b15',
+            'rt-panel': '#0f1525',
+            'rt-card': '#161e33',
+            'rt-border': '#1e2a45',
+            'rt-border-bright': '#2d3a5e',
+            'rt-accent': '#ff6b35',
+            'rt-cyan': '#22d3ee',
+            'rt-text': '#e6edf3',
+            'rt-muted': '#8b9bb4',
+            'rt-dim': '#5a6a85',
+          }
+        }
+      }
+    }
+  </script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <div id="cdn-fallback" style="display:none; padding: 2rem; text-align: center; font-family: sans-serif;">
-    <h1>⚠️ 基础库加载失败</h1>
-    <p>请检查网络连接后刷新页面。Vue 3 与 Tailwind CSS 需通过 CDN 加载。</p>
+  <div id="cdn-fallback" style="display:none; padding: 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; background: #070b15; color: #ff6b35; min-height: 100vh;">
+    <h1 style="font-size: 1.5rem; letter-spacing: 0.1em;">⚠ SIGNAL LOST</h1>
+    <p style="color: #8b9bb4; margin-top: 1rem;">基础库加载失败 · 请检查网络连接后刷新</p>
+    <p style="color: #5a6a85; margin-top: 0.5rem; font-size: 0.75rem;">Vue 3 / Tailwind CSS / JetBrains Mono 需通过 CDN 加载</p>
   </div>
   <div id="app"></div>
 

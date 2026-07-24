@@ -1,8 +1,247 @@
+/* =========================================================
+   火箭发射追踪 · 任务控制台主题
+   方向: Industrial monospace + 深空暗色
+   字体: JetBrains Mono (数据) + 系统字体 (正文)
+   ========================================================= */
+
+:root {
+  /* 背景层 */
+  --rt-bg: #070b15;           /* 深空黑蓝 */
+  --rt-bg-panel: #0f1525;     /* 面板 */
+  --rt-bg-card: #161e33;      /* 卡片 */
+  --rt-bg-card-hover: #1c2641;
+  --rt-bg-elevated: #1e2a45;
+
+  /* 边框 */
+  --rt-border: #1e2a45;
+  --rt-border-bright: #2d3a5e;
+  --rt-border-accent: #ff6b35;
+
+  /* 文字 */
+  --rt-text: #e6edf3;
+  --rt-text-muted: #8b9bb4;
+  --rt-text-dim: #5a6a85;
+  --rt-text-faint: #3d4a66;
+
+  /* 强调色 */
+  --rt-accent: #ff6b35;       /* 推进剂橙 */
+  --rt-accent-glow: rgba(255, 107, 53, 0.35);
+  --rt-cyan: #22d3ee;         /* 信号青 */
+  --rt-green: #10b981;        /* 信号绿 */
+  --rt-red: #ef4444;          /* 警示红 */
+  --rt-yellow: #fbbf24;       /* 警告黄 */
+  --rt-purple: #a855f7;
+
+  /* 字体 */
+  --rt-font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --rt-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+}
+
 html, body {
   margin: 0; padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  background: var(--rt-bg);
+  color: var(--rt-text);
+  font-family: var(--rt-font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+#app {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 107, 53, 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(34, 211, 238, 0.05), transparent 60%),
+    var(--rt-bg);
+}
+
+/* 等宽数据字体 */
+.mono, code, pre, th, td, button, select, option, input {
+  font-family: var(--rt-font-mono);
+}
+
+/* ============ 滚动条 ============ */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #64748b; }
+::-webkit-scrollbar-track { background: var(--rt-bg); }
+::-webkit-scrollbar-thumb {
+  background: var(--rt-border-bright);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--rt-accent); }
+
+/* ============ 扫描线动画 (顶栏) ============ */
+.rt-scanline {
+  position: relative;
+  overflow: hidden;
+}
+.rt-scanline::after {
+  content: '';
+  position: absolute;
+  left: -100%;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.08), transparent);
+  animation: rt-scan 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes rt-scan {
+  to { left: 200%; }
+}
+
+/* ============ 信号灯呼吸 ============ */
+.rt-pulse-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  animation: rt-pulse 2s ease-in-out infinite;
+}
+.rt-pulse-green { background: var(--rt-green); box-shadow: 0 0 6px var(--rt-green); }
+.rt-pulse-red { background: var(--rt-red); box-shadow: 0 0 6px var(--rt-red); }
+.rt-pulse-amber { background: var(--rt-yellow); box-shadow: 0 0 6px var(--rt-yellow); }
+@keyframes rt-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ============ 发射中脉冲 ============ */
+.rt-flight-pulse {
+  animation: rt-flight 1.2s ease-in-out infinite;
+}
+@keyframes rt-flight {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ============ 通用工具类 (补充 Tailwind 不足) ============ */
+.rt-panel {
+  background: var(--rt-bg-panel);
+  border: 1px solid var(--rt-border);
+}
+.rt-card {
+  background: var(--rt-bg-card);
+  border: 1px solid var(--rt-border);
+}
+.rt-card-hover:hover {
+  background: var(--rt-bg-card-hover);
+  border-color: var(--rt-border-bright);
+}
+.rt-divider {
+  border-color: var(--rt-border);
+}
+.rt-text-mono { font-family: var(--rt-font-mono); }
+.rt-text-accent { color: var(--rt-accent); }
+.rt-text-cyan { color: var(--rt-cyan); }
+.rt-text-muted { color: var(--rt-text-muted); }
+.rt-text-dim { color: var(--rt-text-dim); }
+
+/* 状态徽章 */
+.rt-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  font-family: var(--rt-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+/* 日历单元格悬停发光 */
+.rt-cal-cell {
+  transition: border-color 0.15s, background 0.15s;
+}
+.rt-cal-cell:hover {
+  border-color: var(--rt-accent);
+  background: var(--rt-bg-card-hover);
+}
+
+/* 表格行 */
+.rt-row {
+  transition: background 0.12s;
+}
+.rt-row:hover {
+  background: var(--rt-bg-card-hover);
+}
+
+/* 信号灯按钮 */
+.rt-btn {
+  font-family: var(--rt-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border: 1px solid var(--rt-border-bright);
+  background: transparent;
+  color: var(--rt-text);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.rt-btn:hover {
+  border-color: var(--rt-accent);
+  color: var(--rt-accent);
+}
+.rt-btn-active {
+  background: var(--rt-accent);
+  border-color: var(--rt-accent);
+  color: #0a0e17;
+}
+.rt-btn-active:hover {
+  background: var(--rt-accent);
+  color: #0a0e17;
+}
+
+/* 标签栏 (uppercase tracking) */
+.rt-eyebrow {
+  font-family: var(--rt-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rt-text-dim);
+}
+
+/* 网格分隔线 */
+.rt-grid-line {
+  border-color: var(--rt-border);
+}
+
+/* 选中行高亮 */
+.rt-selected {
+  background: rgba(255, 107, 53, 0.08) !important;
+  border-left: 2px solid var(--rt-accent);
+}
+
+/* 输入框 */
+.rt-input {
+  background: var(--rt-bg);
+  border: 1px solid var(--rt-border);
+  color: var(--rt-text);
+  padding: 4px 8px;
+  font-family: var(--rt-font-mono);
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.rt-input:focus {
+  border-color: var(--rt-accent);
+}
+
+/* 进度/状态条 */
+.rt-meter {
+  height: 2px;
+  background: var(--rt-bg);
+  position: relative;
+  overflow: hidden;
+}
+.rt-meter-fill {
+  height: 100%;
+  background: var(--rt-accent);
+  transition: width 0.3s;
+}
+
+/* 尊重 prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .rt-scanline::after,
+  .rt-pulse-dot,
+  .rt-flight-pulse {
+    animation: none;
+  }
+}
