@@ -1,44 +1,44 @@
 /* =========================================================
-   火箭发射追踪 · 深空极简 (画布式布局)
-   方向: 纯白+透明度灰度 · 浮动面板 · 粒子背景 · 轻度后现代
+   火箭发射追踪 · 冷白灰 (画布式布局)
+   方向: 冷白灰底 + 深色文字 + 青色强调 · 浮动面板 · 粒子背景
    ========================================================= */
 
 :root {
-  /* === 背景层 (深空蓝黑,非纯黑) === */
-  --rt-bg: #0a0e17;
-  --rt-bg-deep: #060912;
-  --rt-bg-panel: rgba(15, 22, 35, 0.72);
-  --rt-bg-card: rgba(25, 35, 50, 0.5);
-  --rt-bg-elevated: rgba(35, 48, 68, 0.65);
-  --rt-bg-hover: rgba(45, 60, 85, 0.5);
+  /* === 背景层 (冷白灰,非纯白) === */
+  --rt-bg: #eef1f6;           /* 主背景 - 冷白灰 */
+  --rt-bg-deep: #e4e8f0;      /* 更深层 */
+  --rt-bg-panel: rgba(255, 255, 255, 0.72);  /* 面板 - 半透明白 */
+  --rt-bg-card: rgba(255, 255, 255, 0.6);    /* 卡片 */
+  --rt-bg-elevated: rgba(255, 255, 255, 0.85);
+  --rt-bg-hover: rgba(15, 30, 60, 0.06);
 
   /* === 边框 (极细,透明度层级) === */
-  --rt-border: rgba(255, 255, 255, 0.06);
-  --rt-border-bright: rgba(255, 255, 255, 0.12);
-  --rt-border-glow: rgba(255, 255, 255, 0.25);
+  --rt-border: rgba(15, 30, 60, 0.08);
+  --rt-border-bright: rgba(15, 30, 60, 0.16);
+  --rt-border-glow: rgba(8, 145, 178, 0.5);
 
-  /* === 文字 (纯白+透明度灰度) === */
-  --rt-text: rgba(255, 255, 255, 0.95);
-  --rt-text-secondary: rgba(255, 255, 255, 0.6);
-  --rt-text-tertiary: rgba(255, 255, 255, 0.4);
-  --rt-text-faint: rgba(255, 255, 255, 0.22);
-  --rt-text-ghost: rgba(255, 255, 255, 0.12);
+  /* === 文字 (深蓝黑+透明度灰度,冷白灰底对比度校准) === */
+  --rt-text: rgba(15, 23, 42, 0.95);
+  --rt-text-secondary: rgba(15, 23, 42, 0.74);
+  --rt-text-tertiary: rgba(15, 23, 42, 0.58);
+  --rt-text-faint: rgba(15, 23, 42, 0.40);
+  --rt-text-ghost: rgba(15, 23, 42, 0.22);
 
-  /* === 强调 (纯白+发光,无彩色) === */
-  --rt-accent: rgba(255, 255, 255, 0.95);
-  --rt-accent-glow: rgba(255, 255, 255, 0.15);
+  /* === 强调 (青色,克制) === */
+  --rt-accent: #0891b2;
+  --rt-accent-glow: rgba(8, 145, 178, 0.18);
 
-  /* === 状态色 (低饱和,仅用于徽章) === */
-  --rt-success: rgba(94, 234, 212, 0.85);
-  --rt-warning: rgba(251, 191, 36, 0.85);
-  --rt-danger: rgba(248, 113, 113, 0.85);
-  --rt-hold: rgba(192, 132, 252, 0.85);
+  /* === 状态色 (深色系,在白底上可读) === */
+  --rt-success: #0d9488;
+  --rt-warning: #d97706;
+  --rt-danger: #dc2626;
+  --rt-hold: #7c3aed;
 
   /* === 字体 === */
   --rt-font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --rt-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
 
-  /* === 间距 (4px 基准) === */
+  /* === 间距 === */
   --rt-space-1: 4px;
   --rt-space-2: 8px;
   --rt-space-3: 12px;
@@ -46,18 +46,18 @@
   --rt-space-5: 24px;
   --rt-space-6: 32px;
 
-  /* === 圆角 (极小,硬朗) === */
+  /* === 圆角 === */
   --rt-radius-sm: 2px;
   --rt-radius: 4px;
   --rt-radius-lg: 6px;
 
-  /* === 阴影 (极淡) === */
-  --rt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --rt-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --rt-shadow-glow: 0 0 24px rgba(255, 255, 255, 0.04);
+  /* === 阴影 (柔和) === */
+  --rt-shadow-sm: 0 1px 2px rgba(15, 30, 60, 0.04);
+  --rt-shadow: 0 8px 32px rgba(15, 30, 60, 0.08);
+  --rt-shadow-glow: 0 0 24px rgba(8, 145, 178, 0.08);
 
   /* === 毛玻璃 === */
-  --rt-blur: blur(16px) saturate(140%);
+  --rt-blur: blur(16px) saturate(160%);
 
   /* === 过渡 === */
   --rt-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -67,8 +67,8 @@
   --rt-dur-slow: 400ms;
 
   /* === 发光 (克制) === */
-  --rt-glow-sm: 0 0 8px rgba(255, 255, 255, 0.08);
-  --rt-glow: 0 0 12px rgba(255, 255, 255, 0.12);
+  --rt-glow-sm: 0 0 0 1px rgba(8, 145, 178, 0.12), 0 0 12px rgba(8, 145, 178, 0.06);
+  --rt-glow: 0 0 0 1px rgba(8, 145, 178, 0.18), 0 0 16px rgba(8, 145, 178, 0.1);
 }
 
 html, body {
@@ -87,10 +87,10 @@ html, body {
   width: 100vw;
   height: 100vh;
   background: var(--rt-bg);
-  /* 极淡坐标网格 (后现代 HUD 感) */
+  /* 极淡坐标网格 (HUD 感) */
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    linear-gradient(rgba(15, 30, 60, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 30, 60, 0.025) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -102,21 +102,20 @@ html, body {
   pointer-events: none;
 }
 
-/* 等宽数据字体 */
 .mono, code, pre, th, td, button, select, option, input {
   font-family: var(--rt-font-mono);
 }
 
-/* ============ 滚动条 (细线样式) ============ */
+/* ============ 滚动条 ============ */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(15, 30, 60, 0.15);
   border-radius: 2px;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+::-webkit-scrollbar-thumb:hover { background: var(--rt-accent); }
 
-/* ============ 浮动面板基础 (画布式布局核心) ============ */
+/* ============ 浮动面板 ============ */
 .rt-panel {
   position: absolute;
   background: var(--rt-bg-panel);
@@ -133,16 +132,17 @@ html, body {
   box-shadow: var(--rt-shadow), var(--rt-shadow-glow);
 }
 
-/* 后现代角落装饰 (单像素斜线) */
+/* 后现代角落装饰 */
 .rt-corner-deco::before,
 .rt-corner-deco::after {
   content: '';
   position: absolute;
   width: 8px; height: 8px;
-  border-color: var(--rt-text-faint);
+  border-color: var(--rt-accent);
   border-style: solid;
   border-width: 0;
   pointer-events: none;
+  opacity: 0.5;
 }
 .rt-corner-deco::before {
   top: -1px; left: -1px;
@@ -175,7 +175,7 @@ html, body {
   padding: 0 var(--rt-space-4);
 }
 
-/* ============ 筛选面板 (左上浮动) ============ */
+/* ============ 筛选面板 ============ */
 .rt-panel--filter {
   top: 76px;
   left: var(--rt-space-4);
@@ -185,7 +185,7 @@ html, body {
   padding: var(--rt-space-3);
 }
 
-/* ============ 主面板 (中央浮动,最大) ============ */
+/* ============ 主面板 ============ */
 .rt-panel--main {
   top: 76px;
   left: 232px;
@@ -194,13 +194,15 @@ html, body {
   overflow: hidden;
 }
 
-/* ============ 详情面板 (右下浮动,浮现) ============ */
+/* ============ 详情面板 ============ */
 .rt-panel--detail {
   top: 76px;
   right: var(--rt-space-4);
   bottom: 44px;
   width: 340px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: var(--rt-space-4);
   animation: rt-detail-in var(--rt-dur-slow) var(--rt-ease);
 }
@@ -208,11 +210,7 @@ html, body {
   from { opacity: 0; transform: translateX(20px) scale(0.98); }
   to { opacity: 1; transform: translateX(0) scale(1); }
 }
-
-/* 详情打开时,主面板让出空间 */
-.rt-panel--main.rt-panel--main--with-detail {
-  right: 372px;
-}
+.rt-panel--main.rt-panel--main--with-detail { right: 372px; }
 
 /* ============ 底部状态栏 ============ */
 .rt-statusbar {
@@ -257,16 +255,12 @@ html, body {
   border: 1px solid var(--rt-border);
 }
 
-.rt-row {
-  transition: background var(--rt-dur-fast) var(--rt-ease-out);
-}
-.rt-row:hover {
-  background: var(--rt-bg-hover);
-}
+.rt-row { transition: background var(--rt-dur-fast) var(--rt-ease-out); }
+.rt-row:hover { background: var(--rt-bg-hover); }
 
 .rt-selected {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border-left: 1px solid var(--rt-accent);
+  background: rgba(8, 145, 178, 0.10) !important;
+  border-left: 2px solid var(--rt-accent);
 }
 
 /* 按钮 */
@@ -282,23 +276,24 @@ html, body {
   transition: all var(--rt-dur-fast) var(--rt-ease-out);
 }
 .rt-btn:hover {
-  border-color: var(--rt-border-glow);
-  color: var(--rt-text);
+  border-color: var(--rt-accent);
+  color: var(--rt-accent);
   box-shadow: var(--rt-glow-sm);
 }
 .rt-btn-active {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--rt-border-glow);
-  color: var(--rt-text);
+  background: var(--rt-accent);
+  border-color: var(--rt-accent);
+  color: #fff;
 }
 .rt-btn-active:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--rt-text);
+  background: #0e7490;
+  border-color: #0e7490;
+  color: #fff;
 }
 
 /* 输入框 */
 .rt-input {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.6);
   border: 1px solid var(--rt-border);
   color: var(--rt-text);
   padding: 4px 8px;
@@ -308,31 +303,33 @@ html, body {
   transition: border-color var(--rt-dur-fast) var(--rt-ease-out);
 }
 .rt-input:focus {
-  border-color: var(--rt-border-glow);
+  border-color: var(--rt-accent);
   box-shadow: var(--rt-glow-sm);
 }
 
 /* 日历单元格 */
 .rt-cal-cell {
+  background: rgba(255, 255, 255, 0.5);
   transition: border-color var(--rt-dur-fast) var(--rt-ease-out),
-              background var(--rt-dur-fast) var(--rt-ease-out);
+              background var(--rt-dur-fast) var(--rt-ease-out),
+              box-shadow var(--rt-dur-fast) var(--rt-ease-out);
 }
 .rt-cal-cell:hover {
-  border-color: var(--rt-border-glow);
-  background: var(--rt-bg-hover);
+  border-color: var(--rt-accent);
+  background: rgba(15, 30, 60, 0.06);
   box-shadow: var(--rt-glow-sm);
 }
 
 /* 进度条 */
 .rt-meter {
   height: 2px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(15, 30, 60, 0.12);
   position: relative;
   overflow: hidden;
 }
 .rt-meter-fill {
   height: 100%;
-  background: var(--rt-text);
+  background: var(--rt-accent);
   transition: width var(--rt-dur-slow) var(--rt-ease);
 }
 
@@ -342,31 +339,25 @@ html, body {
   width: 5px; height: 5px;
   border-radius: 50%;
 }
-.rt-dot-pulse {
-  animation: rt-pulse 2s ease-in-out infinite;
-}
+.rt-dot-pulse { animation: rt-pulse 2s ease-in-out infinite; }
 @keyframes rt-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
 
-/* 发射中脉冲 */
-.rt-flight-pulse {
-  animation: rt-flight 1.2s ease-in-out infinite;
-}
+.rt-flight-pulse { animation: rt-flight 1.2s ease-in-out infinite; }
 @keyframes rt-flight {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
 
-/* 非对称分隔线 (后现代) */
 .rt-divider-asym {
   width: 70%;
   margin-left: 0;
   border-color: var(--rt-border);
 }
 
-/* ============ 响应式:窄屏降级为堆叠 ============ */
+/* ============ 响应式 ============ */
 @media (max-width: 1023px) {
   .rt-panel--filter {
     top: 76px;
@@ -378,9 +369,7 @@ html, body {
     transform: translateY(-120%);
     transition: transform var(--rt-dur) var(--rt-ease);
   }
-  .rt-panel--filter.rt-panel--filter--open {
-    transform: translateY(0);
-  }
+  .rt-panel--filter.rt-panel--filter--open { transform: translateY(0); }
   .rt-panel--main {
     left: var(--rt-space-3);
     right: var(--rt-space-3);
@@ -397,7 +386,6 @@ html, body {
   }
 }
 
-/* ============ prefers-reduced-motion ============ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚀 火箭发射追踪 · 深空</title>
+  <title>🚀 火箭发射追踪 · 冷白灰</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            'rt-bg': '#0a0e17',
-            'rt-panel': 'rgba(15, 22, 35, 0.72)',
-            'rt-card': 'rgba(25, 35, 50, 0.5)',
-            'rt-border': 'rgba(255, 255, 255, 0.06)',
-            'rt-border-bright': 'rgba(255, 255, 255, 0.12)',
-            'rt-text': 'rgba(255, 255, 255, 0.95)',
-            'rt-secondary': 'rgba(255, 255, 255, 0.6)',
-            'rt-tertiary': 'rgba(255, 255, 255, 0.4)',
-            'rt-faint': 'rgba(255, 255, 255, 0.22)',
+            'rt-bg': '#eef1f6',
+            'rt-panel': 'rgba(255, 255, 255, 0.72)',
+            'rt-card': 'rgba(255, 255, 255, 0.6)',
+            'rt-border': 'rgba(15, 30, 60, 0.08)',
+            'rt-border-bright': 'rgba(15, 30, 60, 0.16)',
+            'rt-border-glow': 'rgba(8, 145, 178, 0.5)',
+            'rt-text': 'rgba(15, 23, 42, 0.95)',
+            'rt-secondary': 'rgba(15, 23, 42, 0.62)',
+            'rt-tertiary': 'rgba(15, 23, 42, 0.42)',
+            'rt-faint': 'rgba(15, 23, 42, 0.24)',
+            'rt-accent': '#0891b2',
           }
         }
       }
@@ -31,10 +34,10 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <div id="cdn-fallback" style="display:none; padding: 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; background: #0a0e17; color: rgba(255,255,255,0.95); min-height: 100vh;">
+  <div id="cdn-fallback" style="display:none; padding: 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; background: #eef1f6; color: rgba(15,23,42,0.95); min-height: 100vh;">
     <h1 style="font-size: 1.5rem; letter-spacing: 0.16em; font-weight: 300;">SIGNAL LOST</h1>
-    <p style="color: rgba(255,255,255,0.6); margin-top: 1rem; font-size: 0.875rem;">基础库加载失败 · 请检查网络连接后刷新</p>
-    <p style="color: rgba(255,255,255,0.4); margin-top: 0.5rem; font-size: 0.75rem; letter-spacing: 0.05em;">Vue 3 / Tailwind CSS / JetBrains Mono · CDN required</p>
+    <p style="color: rgba(15,23,42,0.62); margin-top: 1rem; font-size: 0.875rem;">基础库加载失败 · 请检查网络连接后刷新</p>
+    <p style="color: rgba(15,23,42,0.42); margin-top: 0.5rem; font-size: 0.75rem; letter-spacing: 0.05em;">Vue 3 / Tailwind CSS / JetBrains Mono · CDN required</p>
   </div>
   <canvas id="particle-bg"></canvas>
   <div id="app"></div>

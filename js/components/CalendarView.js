@@ -31,7 +31,7 @@ RT.CalendarView = {
           <div :class="cell.inMonth ? 'rt-text' : 'rt-text-faint'" class="rt-text-mono text-[10px] mb-1">{{ cell.day }}</div>
           <div v-for="l in (expandedDay === cell.day && cell.inMonth ? launchesOfDay(cell) : launchesOfDay(cell).slice(0, 2))" :key="l.id"
             @click.stop="store.selectLaunch(l.id)"
-            :style="{ borderLeft: '2px solid ' + providerColor(l), background: 'rgba(255, 255, 255, 0.04)', color: 'var(--rt-text)' }"
+            :style="{ borderLeft: '2px solid ' + providerColor(l), background: 'rgba(15, 30, 60, 0.04)', color: 'var(--rt-text)' }"
             class="text-[9px] px-1.5 py-0.5 mb-0.5 truncate rt-text-mono">
             {{ shortName(l) }}
           </div>
@@ -110,7 +110,7 @@ RT.CalendarView = {
       const parts = l.name.split(' · ');
       return parts.length > 1 ? parts[0] + ' · ' + parts[1] : l.name;
     },
-    providerColor(l) { const p = this.findPreset(l); return p ? p.color : 'rgba(255,255,255,0.4)'; },
+    providerColor(l) { const p = this.findPreset(l); return p ? p.color : 'rgba(15, 23, 42, 0.4)'; },
     findPreset(l) {
       if (!l.provider) return null;
       return RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id);

@@ -31,7 +31,7 @@ RT.HistoryView = {
         </div>
       </div>
       <table class="w-full text-xs rt-text-mono">
-        <thead class="sticky top-0 z-10" style="background: var(--rt-bg);">
+        <thead class="sticky top-0 z-10" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px);">
           <tr class="rt-eyebrow" style="border-bottom: 1px solid var(--rt-border-bright);">
             <th class="text-left py-2">▸ DATE</th>
             <th class="text-left py-2">ROCKET</th>
@@ -71,7 +71,7 @@ RT.HistoryView = {
     formatTime(iso) { return RT.time.formatLocal(new Date(iso).getTime(), this.store.timezone); },
     providerColor(l) {
       const p = l.provider ? RT.PRESET_MANUFACTURERS.find(m => m.id === l.provider.id) : null;
-      return p ? p.color : 'rgba(255,255,255,0.4)';
+      return p ? p.color : 'rgba(15, 23, 42, 0.4)';
     },
     providerName(l) {
       if (!l.provider) return '—';

@@ -3,7 +3,7 @@ RT.DetailDrawer = {
   name: 'DetailDrawer',
   props: { store: Object, fullscreen: { default: false } },
   template: `
-    <div class="h-full flex flex-col">
+    <div class="flex-1 min-h-0 flex flex-col">
       <div class="flex justify-between items-center mb-4 pb-2" style="border-bottom: 1px solid var(--rt-border);">
         <div class="rt-eyebrow flex items-center gap-2">
           <span class="rt-dot rt-dot-pulse" style="background: var(--rt-text);"></span>

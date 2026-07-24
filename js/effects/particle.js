@@ -94,13 +94,13 @@ RT.ParticleField = (function () {
   function drawParticle(p) {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, ' + p.alpha + ')';
+    ctx.fillStyle = 'rgba(8, 145, 178, ' + p.alpha + ')';
     ctx.fill();
     // 微弱光晕(仅大粒子)
     if (p.size > 1.2) {
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 255, 255, ' + (p.alpha * 0.15) + ')';
+      ctx.fillStyle = 'rgba(8, 145, 178, ' + (p.alpha * 0.15) + ')';
       ctx.fill();
     }
   }
@@ -116,11 +116,11 @@ RT.ParticleField = (function () {
         const dy = particles[i].y - particles[j].y;
         const d = Math.sqrt(dx * dx + dy * dy);
         if (d < dist) {
-          const alpha = (1 - d / dist) * 0.06;
+          const alpha = (1 - d / dist) * 0.08;
           ctx.beginPath();
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = 'rgba(255, 255, 255, ' + alpha + ')';
+          ctx.strokeStyle = 'rgba(8, 145, 178, ' + alpha + ')';
           ctx.lineWidth = 0.5;
           ctx.stroke();
         }
@@ -138,7 +138,7 @@ RT.ParticleField = (function () {
       const alpha = b.life * 0.4;
       ctx.beginPath();
       ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255, 255, 255, ' + alpha + ')';
+      ctx.strokeStyle = 'rgba(8, 145, 178, ' + alpha + ')';
       ctx.lineWidth = 1;
       ctx.stroke();
     }

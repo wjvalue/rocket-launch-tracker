@@ -63,15 +63,16 @@ RT.FilterSidebar = {
     },
     providerGroups() {
       const groups = {};
+      // 冷白灰底:用深蓝黑透明度作为分组标题色,中国组最强调
       const colors = {
-        China: 'rgba(255,255,255,0.95)', USA: 'rgba(255,255,255,0.8)', Europe: 'rgba(255,255,255,0.7)',
-        Russia: 'rgba(255,255,255,0.7)', Japan: 'rgba(255,255,255,0.6)', India: 'rgba(255,255,255,0.6)',
-        Korea: 'rgba(255,255,255,0.6)', Unknown: 'rgba(255,255,255,0.4)'
+        China: 'rgba(15, 23, 42, 0.95)', USA: 'rgba(15, 23, 42, 0.78)', Europe: 'rgba(15, 23, 42, 0.68)',
+        Russia: 'rgba(15, 23, 42, 0.68)', Japan: 'rgba(15, 23, 42, 0.58)', India: 'rgba(15, 23, 42, 0.58)',
+        Korea: 'rgba(15, 23, 42, 0.58)', Unknown: 'rgba(15, 23, 42, 0.38)'
       };
       this.allProviders.forEach(p => {
         const mfr = RT.getManufacturer(p.id);
         const country = mfr.country || 'Unknown';
-        if (!groups[country]) groups[country] = { country, name_zh: this.countryNameZh(country), color: colors[country] || 'rgba(255,255,255,0.5)', providers: [] };
+        if (!groups[country]) groups[country] = { country, name_zh: this.countryNameZh(country), color: colors[country] || 'rgba(15, 23, 42, 0.48)', providers: [] };
         groups[country].providers.push(p);
       });
       const order = ['China', 'USA', 'Europe', 'Russia', 'Japan', 'India', 'Korea', 'Unknown'];
@@ -89,7 +90,7 @@ RT.FilterSidebar = {
     isStatusChecked(s) { return this.store.filters.statuses.includes(s); },
     getProviderColor(id) {
       const mfr = RT.getManufacturer(id);
-      return mfr.color || 'rgba(255,255,255,0.5)';
+      return mfr.color || 'rgba(15, 23, 42, 0.5)';
     },
     getProviderName(id) {
       const p = this.allProviders.find(x => x.id === id);
