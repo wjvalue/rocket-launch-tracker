@@ -2,6 +2,7 @@ window.RT = window.RT || {};
 RT.CalendarView = {
   name: 'CalendarView',
   props: ['store'],
+  data() { return { expandedDay: null }; },
   template: `
     <div class="p-4 bg-white h-full overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
@@ -17,17 +18,19 @@ RT.CalendarView = {
       </div>
       <div class="grid grid-cols-7 gap-1 text-xs">
         <div v-for="cell in calendarCells" :key="cell.key"
-          @click="cell.inMonth && selectDay(cell.day)"
-          :class="cellClass(cell)"
-          class="aspect-square p-1 border cursor-pointer relative">
+          @click="cell.inMonth && toggleDay(cell.day)"
+          :class="[cellClass(cell), expandedDay === cell.day && cell.inMonth ? 'row-span-2 z-10 shadow-lg' : '']"
+          class="p-1 border cursor-pointer relative"
+          :style="expandedDay === cell.day && cell.inMonth ? 'min-height: 200px;' : 'min-height: 56px;'">
           <div :class="cell.inMonth ? '' : 'text-slate-300'">{{ cell.day }}</div>
-          <div v-for="l in launchesOfDay(cell)" :key="l.id"
+          <div v-for="l in (expandedDay === cell.day && cell.inMonth ? launchesOfDay(cell) : launchesOfDay(cell).slice(0, 2))" :key="l.id"
             @click.stop="store.selectLaunch(l.id)"
             :style="{ background: providerColor(l) }"
             class="text-white text-[8px] px-1 py-0.5 rounded mt-0.5 truncate">
             {{ shortName(l) }}
           </div>
-          <div v-if="extraCount(cell) > 0" class="absolute bottom-0 right-0 text-[8px] text-slate-500">+{{ extraCount(cell) }}</div>
+          <div v-if="extraCount(cell) > 0 && expandedDay !== cell.day" class="absolute bottom-0 right-0 text-[8px] text-slate-500 bg-white/80 px-1 rounded">+{{ extraCount(cell) }} 展开</div>
+          <div v-if="expandedDay === cell.day && cell.inMonth" class="absolute top-0 right-0 text-[8px] text-slate-400 bg-white/80 px-1 rounded">✕</div>
         </div>
       </div>
       <div class="flex gap-3 mt-4 text-[10px] text-slate-600 flex-wrap">
@@ -102,6 +105,9 @@ RT.CalendarView = {
     selectDay(day) {
       const list = this.launchesOfDay({ day, inMonth: true });
       if (list.length > 0) this.store.selectLaunch(list[0].id);
+    },
+    toggleDay(day) {
+      this.expandedDay = (this.expandedDay === day) ? null : day;
     },
     prevMonth() {
       let m = this.month - 1, y = this.year;
