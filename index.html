@@ -462,7 +462,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 <script>
 'use strict';
 /* ================= 常量与工具 ================= */
-const API_URL = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=50&hide_recent_previous=true&mode=detailed';
+const API_URL = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100&hide_recent_previous=true&mode=detailed';
 const LS_CACHE = 'rt_cache_v1', LS_STAR = 'rt_star_v1', LS_NOTES = 'rt_notes_v1', LS_SETTINGS = 'rt_settings_v1', LS_NOTIFIED = 'rt_notified_v1';
 const TTL = 30 * 60 * 1000;
 
@@ -472,6 +472,7 @@ const store = {
   del(k){ try{ localStorage.removeItem(k); }catch(e){} }
 };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https?:\/\//i.test(String(u || '')) ? u : '#';
 const $ = sel => document.querySelector(sel);
 const pad = n => String(n).padStart(2, '0');
 
@@ -743,38 +744,67 @@ let state = {
   tab: settings.scope === 'global' ? 'global' : 'cn',
   loading: true, cached: false, fetchedAt: 0, error: null,
   provider: '', rocket: '', range: 0, q: '',
-  calY: new Date().getFullYear(), calM: new Date().getMonth(), calDay: null, calScope: 'cn'
+  calY: new Date().getFullYear(), calM: new Date().getMonth(), calDay: null, calScope: 'cn',
+  totalUpcoming: 0
 };
 let starred = new Set(store.get(LS_STAR, []));
 let notes = store.get(LS_NOTES, {});
+let lastFocus = null;
 
 /* ================= 数据获取 ================= */
+// 只保留页面用到的字段，缓存体积从 ~1.6MB 降到 ~500KB
+function slimLaunch(l){
+  const pick = (o, keys) => { if (!o) return undefined; const r = {}; for (const k of keys) if (o[k] != null) r[k] = o[k]; return r; };
+  const cfg = l.rocket && l.rocket.configuration;
+  return {
+    id: l.id, name: l.name, net: l.net,
+    window_start: l.window_start, window_end: l.window_end,
+    status: pick(l.status, ['abbrev','name']),
+    net_precision: pick(l.net_precision, ['abbrev']),
+    probability: l.probability, weather_concerns: l.weather_concerns,
+    webcast_live: l.webcast_live, image: l.image, url: l.url,
+    launch_service_provider: pick(l.launch_service_provider, ['name']),
+    rocket: { configuration: pick(cfg, ['name','full_name','length','diameter','launch_mass','to_thrust','leo_capacity','gto_capacity','min_stage','max_stage','maiden_flight','reusable','active','total_launch_count','successful_launches','failed_launches','pending_launches','image_url']) },
+    mission: l.mission ? { name: l.mission.name, description: l.mission.description, type: l.mission.type,
+      orbit: pick(l.mission.orbit, ['abbrev','name']) } : null,
+    pad: l.pad ? { name: l.pad.name, location: pick(l.pad.location, ['name','country_code']) } : null,
+    vidURLs: (l.vidURLs || []).slice(0, 3).map(v => ({ priority: v.priority, title: v.title, source: v.source, url: v.url })),
+    updates: (l.updates || []).slice(0, 3).map(u => ({ created_on: u.created_on, comment: u.comment }))
+  };
+}
 async function loadLaunches(force){
   const cache = store.get(LS_CACHE, null);
   if (!force && cache && Date.now() - cache.fetched_at < TTL){
-    applyData(cache.results, false, cache.fetched_at);
+    applyData(cache.results, false, cache.fetched_at, cache.count);
     return;
   }
   state.loading = true; state.error = null; renderAll();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
   try{
-    const res = await fetch(API_URL, { headers:{ 'Accept':'application/json' } });
+    const res = await fetch(API_URL, { headers:{ 'Accept':'application/json' }, signal: ctrl.signal });
     if (res.status === 429) throw new Error('API 限流（每小时请求数已达上限），请稍后再试');
     if (!res.ok) throw new Error('API 返回 HTTP ' + res.status);
     const json = await res.json();
     if (!json.results) throw new Error('API 数据格式异常');
-    store.set(LS_CACHE, { fetched_at: Date.now(), results: json.results });
-    applyData(json.results, false, Date.now());
+    const slim = json.results.map(slimLaunch);
+    store.set(LS_CACHE, { fetched_at: Date.now(), results: slim, count: json.count });
+    applyData(slim, false, Date.now(), json.count);
   }catch(e){
+    if (e.name === 'AbortError') e.message = '请求超时（20 秒），请检查网络后重试';
     if (cache && cache.results){
-      applyData(cache.results, true, cache.fetched_at);
+      applyData(cache.results, true, cache.fetched_at, cache.count);
       state.error = e.message;
     }else{
       state.loading = false; state.error = e.message; renderAll();
     }
+  }finally{
+    clearTimeout(timer);
   }
 }
-function applyData(results, cached, fetchedAt){
+function applyData(results, cached, fetchedAt, total){
   launches = results; state.cached = cached; state.fetchedAt = fetchedAt;
+  state.totalUpcoming = total || 0;
   state.loading = false; state.error = null;
   renderAll();
 }
@@ -886,7 +916,11 @@ function cdDisplay(l){
   const t = new Date(l.net) - Date.now();
   if (t <= 0) return '进入窗口';
   const prec = precisionInfo(l);
-  if (prec.level === 'day' || prec.level === 'coarse') return 'D-' + Math.max(1, Math.ceil(t/86400e3));
+  if (prec.level === 'day' || prec.level === 'coarse'){
+    const d = new Date(l.net), now = new Date();
+    return (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate())
+      ? '今天' : 'D-' + Math.max(1, Math.ceil(t / 86400e3));
+  }
   return cdText(t);
 }
 const isStale = l => new Date(l.net) < new Date(Date.now() - 2*3600e3) && !['Success','Failure','In Flight'].includes((l.status||{}).abbrev);
@@ -968,8 +1002,9 @@ function moveGlider(){
 function renderTabs(){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === state.tab));
   const cn = launches.filter(isChina).length;
+  const nG = launches.length;
   $('#n-cn').textContent = cn ? String(cn) : '';
-  $('#n-global').textContent = launches.length ? String(launches.length) : '';
+  $('#n-global').textContent = nG ? (state.totalUpcoming > nG ? `${nG}/${state.totalUpcoming}` : String(nG)) : '';
   $('#n-starred').textContent = starred.size ? String(starred.size) : '';
   $('#filters').classList.toggle('hidden', state.tab === 'calendar');
   $('#list').classList.toggle('hidden', state.tab === 'calendar');
@@ -1014,7 +1049,7 @@ function renderHero(){
       <div class="hero-actions">
         <button class="star-btn ${starred.has(l.id) ? 'on' : ''}" data-star="${l.id}" aria-label="关注此次发射">${starred.has(l.id) ? '★' : '☆'}</button>
         <button class="btn primary" data-detail="${l.id}">查看发射详情</button>
-        ${live || (l.vidURLs||[]).length ? '<a class="btn ghost" target="_blank" rel="noopener" href="' + esc(((l.vidURLs||[]).slice().sort((a,b)=>a.priority-b.priority)[0]||{}).url || '#') + '">观看直播 ↗</a>' : ''}
+        ${live || (l.vidURLs||[]).length ? '<a class="btn ghost" target="_blank" rel="noopener" href="' + esc(safeUrl(((l.vidURLs||[]).slice().sort((a,b)=>a.priority-b.priority)[0]||{}).url)) + '">观看直播 ↗</a>' : ''}
       </div>
     </div>
     <div class="hero-img">${imgHTML(srcs, rocketZh, '')}</div>`;
@@ -1031,7 +1066,10 @@ function renderFilters(){
     return `<option value="${esc(p)}">${esc(providerZh(l0||{}))}</option>`;
   }).join('');
   rs.innerHTML = '<option value="">全部火箭</option>' + rockets.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
-  ps.value = keepP; rs.value = keepR;
+  // 跨视图残留的筛选值若不在当前选项中则重置，避免下拉框空白但过滤仍生效的「假空列表」
+  state.provider = provs.includes(keepP) ? keepP : '';
+  state.rocket = rockets.includes(keepR) ? keepR : '';
+  ps.value = state.provider; rs.value = state.rocket;
 }
 
 function cardHTML(l, i){
@@ -1043,7 +1081,7 @@ function cardHTML(l, i){
   const cdCls = stale ? 'stale' : (prec.level === 'day' || prec.level === 'coarse') ? 'day' : (d - Date.now() < 24*3600e3 ? 'soon' : '');
   const cdShow = stale ? '时间待更新' : cdDisplay(l);
   const delay = Math.min((i || 0) * 40, 360);
-  return `<article class="card" data-id="${l.id}" style="animation-delay:${delay}ms">
+  return `<article class="card" data-id="${l.id}" tabindex="0" role="button" aria-label="查看${esc(mission || rocketZh)}详情" style="animation-delay:${delay}ms">
     <div class="thumb">${imgHTML(srcs, rocketZh, '')}${l.webcast_live ? '<span class="live-badge"><i></i>直播中</span>' : ''}</div>
     <div class="card-main">
       <div class="card-title">${esc(mission || rocketZh)}</div>
@@ -1069,9 +1107,12 @@ function renderList(){
   list.innerHTML = arr.map((l, i) => cardHTML(l, i)).join('');
   empty.classList.toggle('hidden', arr.length > 0);
   if (!arr.length){
+    const scopeEmpty = currentScopeList().length === 0;
     empty.innerHTML = state.tab === 'starred' && !starred.size
       ? '<div class="big">☆</div>还没有关注的发射<br><span style="color:var(--dim)">点击卡片右上角的 ☆ 即可关注，发射前可收到提醒</span>'
-      : '<div class="big">🔭</div>当前筛选条件下没有发射记录<br><span style="color:var(--dim)">试试放宽筛选或切换时间范围</span>';
+      : scopeEmpty
+        ? `<div class="big">🛰️</div>${state.tab === 'cn' ? '数据源近期没有收录中国发射' : '数据源暂无发射记录'}<br><span style="color:var(--dim)">可稍后点右上角 ⟳ 刷新，或切换其他视图</span>`
+        : '<div class="big">🔭</div>当前筛选条件下没有发射记录<br><span style="color:var(--dim)">试试放宽筛选或切换时间范围</span>';
   }
 }
 function renderWiki(){
@@ -1137,7 +1178,7 @@ function sourceLinks(l, arch){
     ['知乎', `https://www.zhihu.com/search?type=content&q=${q}`],
     ['B 站', `https://search.bilibili.com/all?keyword=${q}`],
     [`维基 ${year} 年列表`, `https://zh.wikipedia.org/wiki/${encodeURIComponent(year + '年航天活动列表')}`],
-    ['LL2 数据页', (l.url || '#')]
+    ['LL2 数据页', safeUrl(l.url)]
   ];
 }
 function openDetail(id){
@@ -1171,7 +1212,7 @@ function openDetail(id){
 
   $('#modal-root').innerHTML = `
   <div class="modal-backdrop" id="detail-backdrop">
-    <div class="modal" role="dialog" aria-label="发射详情">
+    <div class="modal" role="dialog" aria-label="发射详情" tabindex="-1">
       <button class="modal-close" data-close aria-label="关闭">✕</button>
       <div class="detail-hero">
         ${imgHTML(heroSrc, rocketZh, '')}
@@ -1236,18 +1277,20 @@ function openDetail(id){
           <h3>多来源确认</h3>
           <div class="link-row">
             ${sourceLinks(l, arch).map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join('')}
-            ${vid.map(v => `<a href="${esc(v.url)}" target="_blank" rel="noopener">直播 · ${esc(v.title || v.source || '官方')}</a>`).join('')}
+            ${vid.map(v => `<a href="${esc(safeUrl(v.url))}" target="_blank" rel="noopener">直播 · ${esc(v.title || v.source || '官方')}</a>`).join('')}
           </div>
         </div>
       </div>
     </div>
   </div>`;
   document.body.style.overflow = 'hidden';
+  lastFocus = document.activeElement;
   const ta = $('#note-input');
   ta.dataset.lid = l.id;
   ta.addEventListener('input', () => {
     notes[l.id] = ta.value; store.set(LS_NOTES, notes);
   });
+  $('#detail-backdrop .modal').focus({ preventScroll: true });
 }
 function closeDetail(){
   const ta = document.querySelector('#note-input');
@@ -1258,6 +1301,8 @@ function closeDetail(){
   }
   $('#modal-root').innerHTML = '';
   document.body.style.overflow = '';
+  if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+  lastFocus = null;
 }
 
 /* ================= 收藏与通知 ================= */
@@ -1265,8 +1310,20 @@ function toggleStar(id){
   if (starred.has(id)){ starred.delete(id); toast('已取消关注'); }
   else{ starred.add(id); toast('已关注，发射前将提醒'); }
   store.set(LS_STAR, [...starred]);
+  const bd = $('#detail-backdrop');
+  const keepScroll = bd ? bd.scrollTop : 0;
+  // renderAll/openDetail 都会重建 DOM 并覆盖 lastFocus，记录卡片 id，最后回填
+  const focusCardId = lastFocus && lastFocus.classList && lastFocus.classList.contains('card') ? lastFocus.dataset.id : null;
   renderAll();
-  if ($('#detail-backdrop')) openDetail(id);
+  if ($('#detail-backdrop')){
+    openDetail(id);
+    if (focusCardId){
+      const nc = document.querySelector(`.card[data-id="${CSS.escape(focusCardId)}"]`);
+      if (nc) lastFocus = nc;
+    }
+    const nb = $('#detail-backdrop');
+    if (nb) nb.scrollTop = keepScroll;
+  }
 }
 function checkNotify(){
   if (!settings.notify || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
@@ -1276,12 +1333,14 @@ function checkNotify(){
     const prec = precisionInfo(l);
     if (prec.level === 'day' || prec.level === 'coarse') continue;
     const t = new Date(l.net) - Date.now();
-    for (const th of [30, 10]){
-      const key = `${l.id}_${th}`;
-      if (t > 0 && t <= th * 60000 && !notified[key]){
+    // 阈值带下限：30 分钟通知只在 10–30 分钟窗口发，避免页面晚开时两条同时弹、文案与实际不符
+    for (const th of [{min:30, after:10}, {min:10, after:0}]){
+      const key = `${l.id}_${th.min}`;
+      if (t > th.after * 60000 && t <= th.min * 60000 && !notified[key]){
         notified[key] = 1;
+        const mins = Math.max(1, Math.ceil(t / 60000));
         try{
-          new Notification(`${th} 分钟后发射：${nameParts(l).mission || displayRocket(l).zh}`,
+          new Notification(`${mins} 分钟后发射：${nameParts(l).mission || displayRocket(l).zh}`,
             { body: `${displayRocket(l).zh} · ${siteZh(l)} · ${fmtLocal(new Date(l.net))}` });
         }catch(e){}
       }
@@ -1308,7 +1367,33 @@ document.addEventListener('click', e => {
   }
   if (e.target.closest('[data-close]') || e.target.id === 'detail-backdrop') closeDetail();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape'){ closeDetail(); $('#settings-backdrop').classList.add('hidden'); document.body.style.overflow=''; } });
+document.addEventListener('keydown', e => {
+  const detailOpen = !!document.querySelector('#detail-backdrop');
+  if (e.key === 'Escape'){
+    closeDetail();
+    $('#settings-backdrop').classList.add('hidden');
+    document.body.style.overflow = '';
+    return;
+  }
+  if (detailOpen && e.key === 'Tab'){
+    // 简易焦点圈禁：Tab 循环限制在弹窗内
+    const modal = document.querySelector('#detail-backdrop .modal');
+    const focusables = modal
+      ? [...modal.querySelectorAll('a[href], button:not([disabled]), textarea, select, input, [tabindex]:not([tabindex="-1"])')].filter(el => el.offsetParent !== null)
+      : [];
+    if (focusables.length){
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      const out = !modal.contains(document.activeElement);
+      if (e.shiftKey && (document.activeElement === first || out)){ e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || out)){ e.preventDefault(); first.focus(); }
+    }
+    return;
+  }
+  if ((e.key === 'Enter' || e.key === ' ') && !/^(button|a|select|textarea|input)$/i.test(e.target.tagName)){
+    const card = e.target.closest && e.target.closest('.card[data-id]');
+    if (card){ e.preventDefault(); openDetail(card.dataset.id); }
+  }
+});
 $('#f-provider').addEventListener('change', e => { state.provider = e.target.value; renderList(); renderHero(); });
 $('#f-rocket').addEventListener('change', e => { state.rocket = e.target.value; renderList(); });
 $('#f-range').addEventListener('change', e => { state.range = +e.target.value; renderList(); });
