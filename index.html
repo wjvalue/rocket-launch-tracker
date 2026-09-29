@@ -1,72 +1,1382 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚀 火箭发射追踪 · 冷白灰</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            'rt-bg': '#eef1f6',
-            'rt-panel': 'rgba(255, 255, 255, 0.72)',
-            'rt-card': 'rgba(255, 255, 255, 0.6)',
-            'rt-border': 'rgba(15, 30, 60, 0.08)',
-            'rt-border-bright': 'rgba(15, 30, 60, 0.16)',
-            'rt-border-glow': 'rgba(8, 145, 178, 0.5)',
-            'rt-text': 'rgba(15, 23, 42, 0.95)',
-            'rt-secondary': 'rgba(15, 23, 42, 0.62)',
-            'rt-tertiary': 'rgba(15, 23, 42, 0.42)',
-            'rt-faint': 'rgba(15, 23, 42, 0.24)',
-            'rt-accent': '#0891b2',
-          }
-        }
-      }
-    }
-  </script>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>火箭发射追踪 · 中国航天</title>
+<script>
+/* 首帧前应用主题，避免闪色 */
+try{
+  var _s = JSON.parse(localStorage.getItem('rt_settings_v1') || '{}');
+  var _t = _s.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.dataset.theme = _t;
+}catch(e){}
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2309090b'/%3E%3Cg fill='none' stroke='%23fafafa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z'/%3E%3Cpath d='M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z'/%3E%3Cpath d='M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0'/%3E%3Cpath d='M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+/* ============ 设计令牌 · 深色（默认） ============ */
+:root{
+  color-scheme:dark;
+  --bg:#09090b;
+  --surface:#101013;
+  --surface2:#17171b;
+  --surface3:#1f1f24;
+  --line:rgba(255,255,255,.07);
+  --line2:rgba(255,255,255,.14);
+  --text:#fafafa;
+  --text-2:#d4d4d8;
+  --muted:#a1a1aa;
+  --dim:#71717a;
+  --link:#8ab4ff;
+  --go:#22c55e; --warn:#eab308; --bad:#f87171;
+  --ok-text:#86efac; --warn-text:#fde68a; --bad-text:#fca5a5;
+  --ring:rgba(255,255,255,.35);
+  --btn-p-bg:#fafafa; --btn-p-fg:#09090b;
+  --topbar-bg:rgba(9,9,11,.85);
+  --backdrop:rgba(0,0,0,.7);
+  --img-bg:#0c0c0e;
+  --option-bg:#141417;
+  --toast-bg:#1c1c21;
+  --toast-shadow:0 8px 30px rgba(0,0,0,.5);
+  --scrollbar:rgba(255,255,255,.12);
+  --sel-bg:rgba(138,180,255,.28);
+  --banner-bg:rgba(234,179,8,.07); --banner-border:rgba(234,179,8,.25);
+  --r-lg:14px; --r-md:10px; --r-sm:7px;
+  --ease:cubic-bezier(.22,.8,.26,1);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f7f7f8;
+  --surface:#ffffff;
+  --surface2:#f4f4f5;
+  --surface3:#ececee;
+  --line:rgba(0,0,0,.08);
+  --line2:rgba(0,0,0,.16);
+  --text:#18181b;
+  --text-2:#3f3f46;
+  --muted:#55555e;
+  --dim:#71717a;
+  --link:#2563eb;
+  --go:#16a34a; --warn:#d97706; --bad:#dc2626;
+  --ok-text:#15803d; --warn-text:#854d0e; --bad-text:#b91c1c;
+  --ring:rgba(0,0,0,.42);
+  --btn-p-bg:#18181b; --btn-p-fg:#fafafa;
+  --topbar-bg:rgba(255,255,255,.85);
+  --backdrop:rgba(0,0,0,.32);
+  --img-bg:#e4e4e7;
+  --option-bg:#f4f4f5;
+  --toast-bg:#ffffff;
+  --toast-shadow:0 8px 30px rgba(0,0,0,.14);
+  --scrollbar:rgba(0,0,0,.2);
+  --sel-bg:rgba(37,99,235,.15);
+  --banner-bg:rgba(202,138,4,.08); --banner-border:rgba(202,138,4,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scrollbar-color:var(--scrollbar) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:99px;border:3px solid transparent;background-clip:content-box}
+::selection{background:var(--sel-bg)}
+body{background:var(--bg);color:var(--text);line-height:1.55;min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;font-size:14px}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+button{font-family:inherit;cursor:pointer;color:inherit}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:4px}
+.hidden{display:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.99)}}
+@keyframes pulse{50%{opacity:.3}}
+
+/* ============ 顶栏 ============ */
+#topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:0 28px;height:56px;background:var(--topbar-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.brand{font-size:14.5px;font-weight:650;display:flex;align-items:center;gap:9px;white-space:nowrap;letter-spacing:.01em;color:var(--text)}
+.brand .logo{display:grid;place-items:center;color:var(--text)}
+.brand-sub{font-size:12px;font-weight:400;color:var(--dim)}
+.top-actions{display:flex;align-items:center;gap:14px}
+#data-updated{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.icon-btn{width:32px;height:32px;border-radius:var(--r-md);display:grid;place-items:center;font-size:14px;color:var(--muted);
+  background:transparent;border:1px solid transparent;transition:.15s}
+.icon-btn:hover{color:var(--text);background:var(--surface2);border-color:var(--line)}
+.icon-btn:disabled{opacity:.4;cursor:wait}
+
+/* ============ 提示条 ============ */
+#banner{margin:16px 28px 0;padding:10px 14px;border-radius:var(--r-md);font-size:13px;
+  background:var(--banner-bg);border:1px solid var(--banner-border);color:var(--warn-text);animation:fadeUp .25s var(--ease)}
+.notam-bar{margin:20px 28px 0;padding:0;border:none;background:none;font-size:13px;color:var(--dim);
+  display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.notam-bar .tag{color:var(--muted);font-weight:600}
+.notam-bar a{color:var(--muted);text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px}
+.notam-bar a:hover{color:var(--text);text-decoration-color:var(--muted)}
+
+/* ============ Hero：内容优先 ============ */
+.hero{margin:24px 28px 0;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:var(--surface);
+  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);min-height:340px;animation:fadeUp .35s var(--ease)}
+.hero-body{padding:34px 38px;display:flex;flex-direction:column;gap:0;min-width:0}
+.kicker{font-size:11.5px;font-weight:600;letter-spacing:.22em;color:var(--dim);display:flex;align-items:center;gap:12px}
+.kicker .live-dot{display:inline-flex;align-items:center;gap:6px;color:var(--bad-text);letter-spacing:.08em}
+.kicker .live-dot i{width:7px;height:7px;border-radius:99px;background:var(--bad);animation:pulse 1.3s infinite}
+.hero-title{font-size:30px;font-weight:700;line-height:1.28;letter-spacing:.01em;margin-top:14px}
+.hero-rocket{margin-top:8px;font-size:15px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hero-rocket b{color:var(--text);font-weight:600}
+.tag{display:inline-block;font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:5px;padding:1px 7px;line-height:1.6}
+.hero-meta{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 28px;max-width:560px}
+.hero-meta .m .k{font-size:11px;color:var(--dim);letter-spacing:.14em}
+.hero-meta .m .v{font-size:13.5px;color:var(--text-2);margin-top:3px;font-variant-numeric:tabular-nums}
+.hero-meta .m .v small{color:var(--dim);font-size:12px}
+.hero-clock{margin-top:auto;padding-top:30px}
+.hero-clock .t{font:600 62px/1 var(--mono);letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--text)}
+.hero-clock.urgent .t{color:var(--go)}
+.hero-clock .l{margin-top:8px;font-size:11px;letter-spacing:.22em;color:var(--dim)}
+.hero-actions{display:flex;gap:10px;align-items:center;margin-top:26px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:7px;background:var(--surface2);color:var(--text);
+  border:1px solid var(--line2);border-radius:var(--r-md);padding:8px 16px;font-size:13.5px;font-weight:500;transition:.15s}
+.btn:hover{background:var(--surface3);border-color:var(--line2)}
+.btn.primary{background:var(--btn-p-bg);color:var(--btn-p-fg);border-color:var(--btn-p-bg);font-weight:600}
+.btn.primary:hover{opacity:.88}
+.btn.ghost{background:transparent;border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--line2);background:var(--surface2)}
+.hero-img{position:relative;border-left:1px solid var(--line);background:var(--img-bg);min-height:220px}
+.hero-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.92)}
+.ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:34px;color:var(--dim);
+  background:linear-gradient(180deg,var(--surface2),var(--img-bg))}
+.status{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500}
+.status i{width:7px;height:7px;border-radius:99px;flex-shrink:0}
+.status.s-ok{color:var(--ok-text)}.status.s-ok i{background:var(--go)}
+.status.s-warn{color:var(--warn-text)}.status.s-warn i{background:var(--warn)}
+.status.s-bad{color:var(--bad-text)}.status.s-bad i{background:var(--bad)}
+.status.s-muted{color:var(--muted)}.status.s-muted i{background:var(--dim)}
+
+/* ============ Tabs：下划线式 ============ */
+.tabs-wrap{margin:30px 28px 0;border-bottom:1px solid var(--line)}
+.tabs{position:relative;display:flex;gap:26px;padding:0 2px}
+.tab{position:relative;background:none;border:none;color:var(--muted);padding:10px 2px 12px;font-size:14px;
+  font-weight:500;transition:color .15s;white-space:nowrap}
+.tab:hover{color:var(--text-2)}
+.tab.active{color:var(--text);font-weight:600}
+.tab .n{font-size:11px;color:var(--dim);margin-left:5px;font-variant-numeric:tabular-nums}
+.tab-glider{position:absolute;bottom:-1px;left:0;height:2px;width:0;background:var(--text);transition:left .28s var(--ease),width .28s var(--ease)}
+
+/* ============ 筛选 ============ */
+.filters{display:flex;gap:8px;margin:16px 28px 0;flex-wrap:wrap;align-items:center}
+.filters select,.filters input{background:transparent;border:1px solid var(--line);color:var(--text);
+  border-radius:var(--r-md);padding:7px 11px;font-size:13px;transition:.15s;min-height:36px}
+.filters select{appearance:none;-webkit-appearance:none;padding-right:28px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath d='M1 1l3.5 3.5L8 1' stroke='%2371717a' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center}
+:root[data-theme="light"] .filters select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath d='M1 1l3.5 3.5L8 1' stroke='%2355555e' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+.filters select option{background:var(--option-bg);color:var(--text)}
+.filters input{flex:1;min-width:200px}
+.filters select:hover,.filters input:hover{border-color:var(--line2)}
+.filters select:focus,.filters input:focus{outline:none;border-color:var(--link)}
+.filters input::placeholder{color:var(--dim)}
+
+/* ============ 卡片 ============ */
+.list{margin:16px 28px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+.card{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
+  cursor:pointer;position:relative;transition:border-color .15s,background .15s;animation:fadeUp .35s var(--ease) both}
+.card:hover{border-color:var(--line2);background:var(--surface2)}
+.thumb{width:122px;flex-shrink:0;position:relative;background:var(--img-bg)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.live-badge{position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:5px;
+  background:rgba(9,9,11,.75);backdrop-filter:blur(4px);color:#fca5a5;font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:99px;border:1px solid rgba(248,113,113,.3)}
+.live-badge i{width:5px;height:5px;border-radius:99px;background:#f87171;animation:pulse 1.3s infinite}
+.card-main{padding:13px 15px;flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card-title{font-size:14.5px;font-weight:650;line-height:1.4;padding-right:24px}
+.card-rocket{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.card-meta{font-size:12px;color:var(--dim)}
+.card-time{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.card-time small{color:var(--dim)}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px}
+.card-foot .status{font-size:12px}
+.cd{font:600 17px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--text-2);letter-spacing:.01em}
+.cd.soon{color:var(--go)}
+.cd.day{font-size:14px;color:var(--muted)}
+.cd.stale{font-size:12px;color:var(--warn-text);font-family:inherit;font-weight:500}
+.card-go{font-size:12px;color:var(--dim);opacity:0;transition:.2s var(--ease);white-space:nowrap}
+.card:hover .card-go{opacity:1;color:var(--muted)}
+.card .star-btn{position:absolute;top:8px;right:6px;opacity:.45;transition:.15s}
+.card:hover .star-btn{opacity:1}
+.star-btn{background:none;border:none;font-size:17px;color:var(--dim);padding:4px 7px;transition:.15s;line-height:1}
+.star-btn:hover{color:#f59e0b;transform:scale(1.15)}
+.star-btn.on{color:#f59e0b;opacity:1}
+
+/* ============ 空状态 / 加载 ============ */
+.empty{margin:40px 28px;text-align:center;color:var(--muted);font-size:13.5px;padding:48px 20px;
+  border:1px dashed var(--line2);border-radius:var(--r-lg)}
+.empty .big{font-size:34px;margin-bottom:10px;opacity:.8}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--line2);border-top-color:var(--muted);
+  border-radius:50%;animation:spin .8s linear infinite;vertical-align:-5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============ 月历 ============ */
+.calendar{margin:18px 28px 40px;animation:fadeUp .3s var(--ease)}
+.cal-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.cal-head h2{font-size:16px;font-weight:650;flex:1;text-align:center;letter-spacing:.03em}
+.cal-nav{display:flex;gap:6px}
+.seg{display:flex;gap:2px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:2px}
+.seg button{border:none;background:transparent;color:var(--muted);font-size:12.5px;padding:5px 13px;border-radius:7px;font-weight:500;transition:.15s}
+.seg button:hover{color:var(--text)}
+.seg button.active{background:var(--btn-p-bg);color:var(--btn-p-fg);font-weight:600}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{font-size:11px;color:var(--dim);text-align:center;padding:4px 0;letter-spacing:.12em}
+.cal-cell{border:1px solid transparent;border-radius:var(--r-md);min-height:76px;padding:8px 9px;
+  font-size:12.5px;color:var(--muted);cursor:default;transition:.15s;font-variant-numeric:tabular-nums}
+.cal-cell.today{border-color:var(--ring)}
+.cal-cell.has{cursor:pointer;border-color:var(--line);background:var(--surface)}
+.cal-cell.has:hover{background:var(--surface2);border-color:var(--line2)}
+.cal-cell .d{font-weight:600;color:var(--text)}
+.cal-cell.dim{opacity:.25}
+.cal-ev{margin-top:5px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-ev i{width:5px;height:5px;border-radius:99px;background:var(--go);flex-shrink:0}
+.cal-ev:not(.cn) i{background:var(--link)}
+.cal-note{font-size:12px;color:var(--dim);margin:12px 2px}
+.cal-day-list{margin-top:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+
+/* ============ 弹窗 ============ */
+.modal-backdrop{position:fixed;inset:0;background:var(--backdrop);backdrop-filter:blur(6px);z-index:100;
+  display:flex;align-items:flex-start;justify-content:center;padding:36px 18px;overflow-y:auto;animation:fadeIn .2s var(--ease)}
+.modal{background:var(--surface);border:1px solid var(--line2);border-radius:var(--r-lg);max-width:880px;width:100%;
+  position:relative;margin-bottom:44px;animation:popIn .25s var(--ease);overflow:hidden}
+.modal-close{position:absolute;top:12px;right:12px;z-index:5;background:rgba(9,9,11,.6);border:1px solid rgba(255,255,255,.2);
+  color:#fafafa;border-radius:99px;width:32px;height:32px;font-size:13px;transition:.15s}
+.modal-close:hover{background:rgba(9,9,11,.85)}
+.detail-hero{position:relative;height:280px;overflow:hidden;background:var(--img-bg)}
+.detail-hero img{width:100%;height:100%;object-fit:cover;filter:saturate(.92)}
+.detail-hero .grad{position:absolute;inset:0;background:linear-gradient(0deg,var(--surface) 2%,rgba(0,0,0,0) 48%)}
+.detail-hero-body{position:absolute;bottom:0;left:0;right:0;padding:22px 32px;z-index:2}
+.detail-hero-body h2{font-size:25px;font-weight:700;line-height:1.3}
+.detail-hero-body .sub{font-size:13.5px;color:var(--text-2);margin-top:5px}
+.detail-actions{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.detail-clock{font:600 20px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--text-2)}
+.detail-clock.urgent{color:var(--go)}
+.detail-body{padding:4px 32px 32px}
+.sect{margin-top:26px}
+.sect>h3{font-size:12px;font-weight:600;color:var(--dim);letter-spacing:.18em;margin-bottom:12px}
+.desc-box{background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 16px;
+  font-size:13.5px;color:var(--text-2);white-space:pre-wrap}
+.note-hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.7}
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.spec{background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px}
+.spec .k{font-size:11px;color:var(--dim)}
+.spec .v{font-size:13.5px;font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums}
+.rocket-flex{display:flex;gap:16px;align-items:stretch}
+.rocket-flex .rimg{width:230px;flex-shrink:0;min-height:176px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--line);background:var(--img-bg)}
+.rocket-flex .rimg img{width:100%;height:100%;object-fit:cover}
+.rocket-flex .rinfo{flex:1;min-width:230px;display:flex;flex-direction:column;gap:12px}
+.rocket-intro{font-size:13.5px;color:var(--muted);line-height:1.75}
+.rocket-intro .sub{color:var(--dim);font-size:12px}
+.note-area{width:100%;min-height:104px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-md);
+  color:var(--text);padding:12px 14px;font-size:13.5px;font-family:inherit;resize:vertical;transition:.15s}
+.note-area:focus{outline:none;border-color:var(--link)}
+.link-row{display:flex;gap:8px;flex-wrap:wrap}
+.link-row a{background:transparent;border:1px solid var(--line);border-radius:var(--r-md);padding:7px 13px;
+  font-size:12.5px;color:var(--muted);transition:.15s}
+.link-row a:hover{border-color:var(--line2);color:var(--text);text-decoration:none}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px 26px;font-size:13px}
+.kv .row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:7px 0}
+.kv .k{color:var(--dim);flex-shrink:0}
+.kv .v{text-align:right;color:var(--text-2);font-variant-numeric:tabular-nums}
+.update-item{font-size:12.5px;color:var(--muted);border-left:2px solid var(--line2);padding:3px 12px;margin-bottom:6px}
+.update-item b{color:var(--text-2);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ============ 设置 ============ */
+.settings{max-width:540px;padding:28px}
+.settings h2{font-size:16px;margin-bottom:14px;font-weight:650}
+.settings .row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid var(--line)}
+.settings .row:last-of-type{border:none}
+.settings .lab{font-size:13.5px;font-weight:600}
+.settings .hint{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.6}
+.settings select{background:var(--surface2);border:1px solid var(--line2);color:var(--text);border-radius:var(--r-sm);padding:7px 10px;font-size:13px}
+.settings select option{background:var(--option-bg)}
+.about{font-size:12.5px;color:var(--muted);background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 16px;margin-top:16px;line-height:1.9}
+.about b{color:var(--text-2)}
+
+/* ============ 维基补充 ============ */
+.wiki-sect{margin:0 28px 40px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;animation:fadeUp .3s var(--ease)}
+.wiki-sect>summary{padding:13px 18px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--muted);list-style:none;transition:.15s}
+.wiki-sect>summary:hover{color:var(--text)}
+.wiki-sect>summary::before{content:"▸ ";color:var(--dim)}
+.wiki-sect[open]>summary::before{content:"▾ "}
+.wiki-sect .wiki-note{padding:0 18px 8px}
+.wiki-table{width:100%;border-collapse:collapse;font-size:13px}
+.wiki-table td{padding:8px 14px;border-top:1px solid var(--line);color:var(--muted)}
+.wiki-table td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.wiki-table td b{color:var(--text);font-weight:600}
+
+/* ============ toast / footer ============ */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--toast-bg);border:1px solid var(--line2);
+  color:var(--text);font-size:13px;padding:9px 18px;border-radius:99px;z-index:200;animation:fadeUp .25s var(--ease);
+  box-shadow:var(--toast-shadow)}
+.footer{padding:20px 28px 36px;text-align:center;font-size:12px;color:var(--dim);line-height:1.9;border-top:1px solid var(--line);margin-top:8px}
+
+@media (max-width:860px){
+  #topbar{padding:0 16px}
+  .notam-bar,#banner,.hero,.tabs-wrap,.filters,.list,.calendar,.wiki-sect,.empty{margin-left:16px;margin-right:16px}
+  .hero{grid-template-columns:1fr;min-height:0}
+  .hero-img{order:-1;height:190px;min-height:0;border-left:none;border-bottom:1px solid var(--line)}
+  .hero-body{padding:22px 20px}
+  .hero-title{font-size:23px}
+  .hero-clock .t{font-size:44px}
+  .hero-meta{grid-template-columns:1fr 1fr;gap:10px 16px}
+  .list{grid-template-columns:1fr}
+  .cal-day-list{grid-template-columns:1fr}
+  .rocket-flex{flex-direction:column}
+  .rocket-flex .rimg{width:100%}
+  .brand-sub{display:none}
+  .tabs{gap:18px;overflow-x:auto}
+  .detail-body,.detail-hero-body{padding-left:20px;padding-right:20px}
+}
+</style>
 </head>
 <body>
-  <div id="cdn-fallback" style="display:none; padding: 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; background: #eef1f6; color: rgba(15,23,42,0.95); min-height: 100vh;">
-    <h1 style="font-size: 1.5rem; letter-spacing: 0.16em; font-weight: 300;">SIGNAL LOST</h1>
-    <p style="color: rgba(15,23,42,0.62); margin-top: 1rem; font-size: 0.875rem;">基础库加载失败 · 请检查网络连接后刷新</p>
-    <p style="color: rgba(15,23,42,0.42); margin-top: 0.5rem; font-size: 0.75rem; letter-spacing: 0.05em;">Vue 3 / Tailwind CSS / JetBrains Mono · CDN required</p>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+        <path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+      </svg>
+    </span>
+    火箭发射追踪<span class="brand-sub">中国航天 · 全球发射</span>
   </div>
-  <canvas id="particle-bg"></canvas>
-  <div id="app"></div>
+  <div class="top-actions">
+    <span id="data-updated"></span>
+    <button id="btn-theme" class="icon-btn" aria-label="切换浅色 / 深色主题"></button>
+    <button id="btn-refresh" class="icon-btn" title="刷新数据" aria-label="刷新数据">⟳</button>
+    <button id="btn-settings" class="icon-btn" title="设置" aria-label="设置">⚙</button>
+  </div>
+</header>
 
-  <script src="js/data/manufacturers.js"></script>
-  <script src="js/data/rocket-specs.js"></script>
-  <script src="js/data/seed-launches.js"></script>
-  <script src="js/services/cache.js"></script>
-  <script src="js/services/ll2-client.js"></script>
-  <script src="js/utils/time.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/effects/particle.js"></script>
-  <script src="js/components/TopBar.js"></script>
-  <script src="js/components/FilterSidebar.js"></script>
-  <script src="js/components/CalendarView.js"></script>
-  <script src="js/components/ListView.js"></script>
-  <script src="js/components/HistoryView.js"></script>
-  <script src="js/components/MainPanel.js"></script>
-  <script src="js/components/DetailDrawer.js"></script>
-  <script src="js/app.js"></script>
+<div id="banner" class="hidden"></div>
 
-  <script>
-    if (typeof Vue === 'undefined') {
-      document.getElementById('cdn-fallback').style.display = 'block';
-      document.getElementById('app').style.display = 'none';
-    } else {
-      // 启动粒子背景
-      RT.ParticleField.init('particle-bg');
+<div class="notam-bar">
+  <span class="tag">精确窗口提示</span>
+  <span>中国发射的精确时间往往提前几天才出现在<b>海事局航行警告（禁航区通告）</b>里</span>
+  <a href="https://www.msa.gov.cn" target="_blank" rel="noopener">中国海事局</a>·
+  <a href="https://s.weibo.com/weibo?q=%E8%88%AA%E8%A1%8C%E8%AD%A6%E5%91%8A%20%E7%81%AB%E7%AE%AD%E5%8F%91%E5%B0%84" target="_blank" rel="noopener">微博搜「航行警告 火箭发射」</a>·
+  <a href="https://s.weibo.com/weibo?q=ChinaSpaceflight" target="_blank" rel="noopener">ChinaSpaceflight</a>
+</div>
+
+<section id="hero" class="hero hidden"></section>
+
+<div class="tabs-wrap">
+  <nav class="tabs" id="tabs" aria-label="视图切换">
+    <button class="tab active" data-tab="cn">中国发射<span class="n" id="n-cn"></span></button>
+    <button class="tab" data-tab="global">全球发射<span class="n" id="n-global"></span></button>
+    <button class="tab" data-tab="calendar">月历</button>
+    <button class="tab" data-tab="starred">我的关注<span class="n" id="n-starred"></span></button>
+    <span class="tab-glider" id="tab-glider"></span>
+  </nav>
+</div>
+
+<div class="filters" id="filters">
+  <select id="f-provider" aria-label="按机构筛选"><option value="">全部机构</option></select>
+  <select id="f-rocket" aria-label="按火箭筛选"><option value="">全部火箭</option></select>
+  <select id="f-range" aria-label="按时间筛选">
+    <option value="0">全部时间</option>
+    <option value="7">未来 7 天</option>
+    <option value="30">未来 30 天</option>
+    <option value="90">未来 90 天</option>
+  </select>
+  <input id="f-search" type="search" autocomplete="off" aria-label="搜索" placeholder="搜索任务 / 火箭 / 机构 / 发射场…">
+</div>
+
+<main id="list" class="list"></main>
+<div id="empty" class="empty hidden"></div>
+<details class="wiki-sect hidden" id="wiki-sect">
+  <summary>维基百科补充任务清单（社区维护 · 需人工核对）</summary>
+  <div class="wiki-note">来自维基百科《今年航天活动列表》，补充 LL2 未收录的中国任务；时间多为 UTC，精确窗口以官方/航行警告为准。</div>
+  <table class="wiki-table"><tbody id="wiki-body"></tbody></table>
+</details>
+
+<div id="calendar" class="calendar hidden">
+  <div class="cal-head">
+    <div class="cal-nav">
+      <button class="btn ghost" id="cal-prev">‹ 上月</button>
+      <button class="btn ghost" id="cal-next">下月 ›</button>
+    </div>
+    <h2 id="cal-title"></h2>
+    <div class="seg" id="cal-scope" role="group" aria-label="月历范围">
+      <button data-cal-scope="cn">中国</button>
+      <button data-cal-scope="global">全球</button>
+    </div>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="cal-note">点击有发射的日期可展开当天列表 · <span style="color:var(--go)">●</span> 中国发射 · <span style="color:var(--link)">●</span> 其他发射</div>
+  <div id="cal-day-list" class="cal-day-list"></div>
+</div>
+
+<div id="modal-root"></div>
+
+<div id="settings-backdrop" class="modal-backdrop hidden">
+  <div class="modal settings" role="dialog" aria-label="设置">
+    <button class="modal-close" id="settings-close" aria-label="关闭设置">✕</button>
+    <h2>设置</h2>
+    <div class="row">
+      <div><div class="lab">默认视图</div><div class="hint">打开页面时首先显示的列表</div></div>
+      <select id="s-scope"><option value="cn">中国发射</option><option value="global">全球发射</option></select>
+    </div>
+    <div class="row">
+      <div><div class="lab">主题</div><div class="hint">「跟随系统」将随操作系统的外观自动切换</div></div>
+      <select id="s-theme"><option value="auto">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select>
+    </div>
+    <div class="row">
+      <div><div class="lab">维基百科补充清单</div><div class="hint">从维基百科解析中国任务，弥补 LL2 对商业航天的遗漏（访问维基百科需相应网络环境，失败会静默跳过）</div></div>
+      <select id="s-wiki"><option value="off">关闭</option><option value="on">开启</option></select>
+    </div>
+    <div class="row">
+      <div><div class="lab">发射提醒通知</div><div class="hint">对⭐关注的发射，在 T-30 分 / T-10 分弹浏览器通知。<br>注意：本地双击打开时，仅在本页面保持打开期间有效。</div></div>
+      <button class="btn" id="s-notify">开启通知</button>
+    </div>
+    <div class="row">
+      <div><div class="lab">清除缓存与笔记</div><div class="hint">删除本地缓存的数据、收藏和笔记</div></div>
+      <button class="btn" id="s-clear">清除</button>
+    </div>
+    <div class="about">
+      <b>数据来源说明（多来源确认）</b><br>
+      · 结构化数据：<a href="https://thespacedevs.com/" target="_blank" rel="noopener">Launch Library 2（The Space Devs）</a>，官方发布聚合，30 分钟本地缓存。<br>
+      · 中国发射时间预报常为<b>日期级</b>：精确窗口请以官方发布与<b>海事局航行警告</b>为准（见页顶链接）。<br>
+      · 公众号（如「太空科普君」「风雷激飞鸣镝」等）与微博无法被网页自动抓取，详情页提供<b>一键搜索入口</b>供人工核实解读，解读可记在「我的笔记」里。<br>
+      · 图片：Wikimedia Commons 与 LL2 媒体库；失效时自动回退占位图。
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  数据来源：Launch Library 2 (The Space Devs) · 维基百科 · Wikimedia Commons<br>
+  本页为个人追踪工具，发射时间与任务状态请以官方最终发布为准
+</footer>
+
+<script>
+'use strict';
+/* ================= 常量与工具 ================= */
+const API_URL = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=50&hide_recent_previous=true&mode=detailed';
+const LS_CACHE = 'rt_cache_v1', LS_STAR = 'rt_star_v1', LS_NOTES = 'rt_notes_v1', LS_SETTINGS = 'rt_settings_v1', LS_NOTIFIED = 'rt_notified_v1';
+const TTL = 30 * 60 * 1000;
+
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = sel => document.querySelector(sel);
+const pad = n => String(n).padStart(2, '0');
+
+/* ================= 主题 ================= */
+const SUN_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+const MOON_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+function systemTheme(){ return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }
+function applyTheme(){
+  const t = settings.theme === 'auto' ? systemTheme() : settings.theme;
+  document.documentElement.dataset.theme = t;
+  const b = $('#btn-theme');
+  if (b){ b.innerHTML = t === 'light' ? MOON_SVG : SUN_SVG; b.title = t === 'light' ? '切换到深色主题' : '切换到浅色主题'; }
+}
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (settings.theme === 'auto') applyTheme(); });
+
+/* ================= 中文映射 ================= */
+const STATUS_ZH = {
+  'Go':['按计划','ok'], 'TBC':['待确认','warn'], 'TBD':['日期待定','muted'], 'Hold':['暂缓 / 推迟','bad'],
+  'In Flight':['飞行中','ok'], 'Success':['成功','ok'], 'Failure':['失败','bad'], 'Partial Failure':['部分失败','bad']
+};
+const PROVIDER_ZH = [
+  [/China Aerospace Science and Technology/i,'中国航天科技集团（CASC）'],
+  [/China Aerospace Science and Industry/i,'中国航天科工集团（CASIC）'],
+  [/Galactic Energy/i,'星河动力航天'], [/LandSpace/i,'蓝箭航天'], [/iSpace/i,'星际荣耀'],
+  [/CAS Space|CASspace/i,'中科宇航'], [/Space Pioneer/i,'天兵科技'], [/Orient Space|OriSpace/i,'东方空间'],
+  [/ExPace/i,'航天科工火箭（快舟）'], [/China Rocket/i,'中国长征火箭有限公司'], [/Deep Blue/i,'深蓝航天'],
+  [/SpaceX/i,'SpaceX'], [/Rocket Lab/i,'火箭实验室'], [/ULA|United Launch/i,'联合发射联盟（ULA）'],
+  [/Arianespace/i,'阿丽亚娜航天'], [/Roscosmos/i,'俄罗斯航天国家集团'], [/ISRO/i,'印度空间研究组织'],
+  [/JAXA/i,'日本宇宙航空研究开发机构'], [/NASA/i,'NASA'], [/Blue Origin/i,'蓝色起源'], [/Firefly/i,'萤火虫航天']
+];
+const SITE_ZH = [
+  [/Jiuquan/i,'酒泉卫星发射中心'], [/Xichang/i,'西昌卫星发射中心'], [/Taiyuan/i,'太原卫星发射中心'],
+  [/Wenchang/i,'文昌航天发射场'], [/Hainan/i,'海南商业航天发射场'], [/Sea Launch|Mobile Launch/i,'海上发射平台'],
+  [/Cape Canaveral/i,'卡纳维拉尔角'], [/Kennedy/i,'肯尼迪航天中心'], [/Vandenberg/i,'范登堡基地'],
+  [/Kourou/i,'库鲁航天中心'], [/Baikonur/i,'拜科努尔'], [/Vostochny|Vostochy/i,'东方航天港'], [/Plesetsk/i,'普列谢茨克'],
+  [/Mahia/i,'玛希亚（新西兰）'], [/Sriharikota/i,'斯里哈里科塔（印度）'], [/Tanegashima|Yoshinobu/i,'种子岛（日本）'],
+  [/Wallops/i,'瓦勒普斯'], [/Kodiak/i,'科迪亚克'], [/SaxaVord|Saxavord/i,'萨克斯福德（英国）'], [/Andøya|Andoya/i,'安岛（挪威）']
+];
+const CC_ZH = {CHN:'中国',USA:'美国',RUS:'俄罗斯',FRA:'法国',GUF:'法属圭亚那',JPN:'日本',IND:'印度',NZL:'新西兰',
+  KAZ:'哈萨克斯坦',GBR:'英国',DEU:'德国',ISR:'以色列',IRN:'伊朗',KOR:'韩国',BRA:'巴西',AUS:'澳大利亚',NOR:'挪威'};
+const ORBIT_ZH = {LEO:'近地轨道',VLEO:'极低近地轨道',SSO:'太阳同步轨道',GTO:'地球同步转移轨道','Direct-GEO':'地球静止轨道（直入）',
+  GEO:'地球静止轨道',MEO:'中圆轨道',MTO:'中圆转移轨道',HEO:'大椭圆轨道',TLI:'地月转移轨道',LTO:'地月转移轨道',
+  LLO:'环月轨道','Lunar Orbit':'环月轨道','Heliocentric':'日心轨道','Escape':'逃逸轨道',Polar:'极轨道','N/A':'待公布',Unknown:'待公布'};
+const TYPE_ZH = {'Communications':'通信','Earth Science':'对地观测',Navigation:'导航','Technology Demonstration':'技术验证',
+  'Test Flight':'试验飞行','Human Spaceflight':'载人航天','Astrobiology':'天体生物','Astronomy':'空间天文',
+  'Planetary Science':'行星探测','Lunar Science':'月球探测','Space Station':'空间站任务',Cargo:'货运',Crewed:'载人',
+  'Earth Observation':'对地观测',Resupply:'货运补给',Unknown:'待公布'};
+
+/* ================= 火箭档案库（内置中文资料） ================= */
+const ARCHIVE = [
+ {name:'长征二号丙', short:'长二丙', family:'长征系列', status:'现役',
+  aliases:['long march 2c','cz-2c'],
+  manufacturer:'中国航天科技集团',
+  image:'',
+  specs:[['全长','约43米'],['芯级直径','3.35米'],['起飞质量','约242吨'],['近地运力','约3.8吨'],['构型','两级液体（可带上面级）'],['首飞','1982年'],['可复用','否']],
+  intro:'长征家族服役最久的老将之一，长期执行遥感、试验卫星与一箭多星任务，可靠性和性价比俱佳。'},
+ {name:'长征二号丁', short:'长二丁', family:'长征系列', status:'现役',
+  aliases:['long march 2d','long march 2d/yz-2','long march 2d/yz-3','long march 2d/yg'],
+  manufacturer:'上海航天技术研究院（航天科技八院）',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bb/Yaogan-36_satellite_launch.png/960px-Yaogan-36_satellite_launch.png',
+  specs:[['全长','约42.6米'],['芯级直径','3.35米'],['起飞质量','约232吨'],['近地运力','约3.5吨 / 太阳同步约1.3吨'],['构型','两级液体（可带远征上面级）'],['首飞','1992年'],['可复用','否']],
+  intro:'常胜将军，高可靠液体常温火箭；常搭配远征上面级执行一箭多星与特定轨道部署任务。'},
+ {name:'长征二号F', short:'长二F', family:'长征系列', status:'现役',
+  aliases:['long march 2f','long march 2f/g','cz-2f'],
+  manufacturer:'中国运载火箭技术研究院（航天科技一院）',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Shenzhou_22_CZ-2F_Y22_launch_01.png/960px-Shenzhou_22_CZ-2F_Y22_launch_01.png',
+  specs:[['全长','约58.3米'],['芯级直径','3.35米 + 4助推'],['起飞质量','约480吨'],['近地运力','约8.1吨（载人状态）'],['构型','两级半液体 + 逃逸塔'],['首飞','1999年'],['可复用','否']],
+  intro:'中国目前唯一的载人运载火箭，专门发射神舟载人飞船，故障检测与逃逸系统保障航天员安全，发射成功率极高。'},
+ {name:'长征三号甲', short:'长三甲', family:'长征系列', status:'现役（少量）',
+  aliases:['long march 3a','cz-3a'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'',
+  specs:[['全长','约52.5米'],['芯级直径','3.35米'],['起飞质量','约241吨'],['同步转移运力','约2.6吨'],['构型','三级液体'],['首飞','1994年'],['可复用','否']],
+  intro:'长三甲系列基本型，三级液氢液氧，曾长期承担北斗与通信卫星高轨发射。'},
+ {name:'长征三号乙', short:'长三乙', family:'长征系列', status:'现役',
+  aliases:['long march 3b','long march 3b/e','cz-3b'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'',
+  specs:[['全长','约56.3米'],['芯级直径','3.35米 + 4×2.25米助推'],['起飞质量','约459吨'],['同步转移运力','约5.5吨'],['构型','三级半液体'],['首飞','1996年'],['可复用','否']],
+  intro:'长征系列发射次数最多的型号之一，北斗组网与高轨通信卫星的主力，从西昌发射。'},
+ {name:'长征三号丙', short:'长三丙', family:'长征系列', status:'现役（少量）',
+  aliases:['long march 3c','cz-3c'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'',
+  specs:[['全长','约54.8米'],['芯级直径','3.35米 + 2助推'],['起飞质量','约345吨'],['同步转移运力','约3.8吨'],['构型','三级半液体'],['首飞','2008年'],['可复用','否']],
+  intro:'长三乙的双助推版本，承担中等重量高轨任务。'},
+ {name:'长征五号', short:'长五', family:'长征系列', status:'现役',
+  aliases:['long march 5','cz-5'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Tianjin_Launch_Vehicle_Base_Long_March_5_04.png/960px-Tianjin_Launch_Vehicle_Base_Long_March_5_04.png',
+  specs:[['全长','约57米'],['芯级直径','5米 + 4×3.35米助推'],['起飞质量','约869吨'],['近地运力','约25吨 / 同步转移约14吨'],['构型','两级半液体（液氢液氧芯级）'],['首飞','2016年'],['可复用','否']],
+  intro:'绰号「胖五」，中国现役运力最大的火箭，嫦娥探月、天问探火与重型卫星的核心力量，从文昌发射。'},
+ {name:'长征五号B', short:'长五B', family:'长征系列', status:'现役',
+  aliases:['long march 5b','cz-5b'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Tianjin_Launch_Vehicle_Base_Long_March_5_04.png/960px-Tianjin_Launch_Vehicle_Base_Long_March_5_04.png',
+  specs:[['全长','约53.7米'],['芯级直径','5米 + 4助推'],['起飞质量','约849吨'],['近地运力','约22吨'],['构型','一级半液体'],['首飞','2020年'],['可复用','否']],
+  intro:'长五的无上面级版本，专职发射空间站大型舱段（问天、梦天）等近地重型载荷。'},
+ {name:'长征六号', short:'长六', family:'长征系列', status:'现役',
+  aliases:['long march 6','cz-6'],
+  manufacturer:'上海航天技术研究院',
+  image:'',
+  specs:[['全长','约29米'],['芯级直径','3.35米'],['起飞质量','约103吨'],['近地运力','约1吨'],['构型','三级液体'],['首飞','2015年'],['可复用','否']],
+  intro:'新一代无毒无污染小型快速火箭。'},
+ {name:'长征六号甲', short:'长六甲', family:'长征系列', status:'现役',
+  aliases:['long march 6a','cz-6a'],
+  manufacturer:'上海航天技术研究院',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7a/%E9%95%BF%E5%BE%81%E5%85%AD%E5%8F%B7%E6%94%B9%E7%B3%BB%E5%88%97%E7%81%AB%E7%AE%AD%E6%A8%A1%E6%8B%9F%E5%9B%BE.jpg/960px-%E9%95%BF%E5%BE%81%E5%85%AD%E5%8F%B7%E6%94%B9%E7%B3%BB%E5%88%97%E7%81%AB%E7%AE%AD%E6%A8%A1%E6%8B%9F%E5%9B%BE.jpg',
+  specs:[['全长','约50米'],['芯级直径','3.35米 + 4固体助推'],['起飞质量','约530吨'],['太阳同步运力','约4吨（700km）'],['构型','两级半（固液捆绑）'],['首飞','2022年'],['可复用','否']],
+  intro:'中国首款固液捆绑火箭，太原卫星发射中心的主力型号，多发千帆组网卫星。'},
+ {name:'长征六号丙', short:'长六丙', family:'长征系列', status:'现役',
+  aliases:['long march 6c','cz-6c'],
+  manufacturer:'上海航天技术研究院',
+  image:'',
+  specs:[['全长','未公开（约40+米）'],['芯级直径','3.35米'],['构型','两级液体（无助推）'],['首飞','2024年5月'],['可复用','否']],
+  intro:'长六系列的无助推简化构型，面向中小载荷低成本发射，2024年首飞。'},
+ {name:'长征七号', short:'长七', family:'长征系列', status:'现役',
+  aliases:['long march 7','cz-7'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Long_March_7_Y11_Tianzhou_10_Launch_01.png/960px-Long_March_7_Y11_Tianzhou_10_Launch_01.png',
+  specs:[['全长','约53米'],['芯级直径','3.35米 + 4助推'],['起飞质量','约597吨'],['近地运力','约13.5吨'],['构型','两级半液体'],['首飞','2016年'],['可复用','否']],
+  intro:'天舟货运飞船的专列，中国空间站物资补给的生命线，从文昌发射。'},
+ {name:'长征七号甲', short:'长七甲', family:'长征系列', status:'现役',
+  aliases:['long march 7a','cz-7a'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Long_March_7_Y11_Tianzhou_10_Launch_01.png/960px-Long_March_7_Y11_Tianzhou_10_Launch_01.png',
+  specs:[['全长','约60米'],['芯级直径','3.35米 + 4助推'],['起飞质量','约726吨'],['同步转移运力','约7吨'],['构型','三级半液体'],['首飞','2020年'],['可复用','否']],
+  intro:'长七的高轨版本，接力长三乙成为高轨通信卫星新主力。'},
+ {name:'长征八号', short:'长八', family:'长征系列', status:'现役',
+  aliases:['long march 8','cz-8'],
+  manufacturer:'上海航天技术研究院',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/Tianjin_Launch_Vehicle_Base_Long_March_8_03.png/960px-Tianjin_Launch_Vehicle_Base_Long_March_8_03.png',
+  specs:[['全长','约50.3米'],['芯级直径','3.35米 + 2助推'],['起飞质量','约356吨'],['太阳同步运力','约5吨（700km）'],['构型','两级半液体'],['首飞','2020年'],['可复用','否']],
+  intro:'面向商业发射与太阳同步轨道的新一代主力，后续将发展可回收构型。'},
+ {name:'长征八号甲', short:'长八甲', family:'长征系列', status:'现役初期',
+  aliases:['long march 8a','cz-8a'],
+  manufacturer:'上海航天技术研究院',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/Tianjin_Launch_Vehicle_Base_Long_March_8_03.png/960px-Tianjin_Launch_Vehicle_Base_Long_March_8_03.png',
+  specs:[['全长','约50.6米'],['芯级直径','3.35米 + 2×2.25米助推'],['起飞质量','约371吨'],['太阳同步运力','约7吨（700km）'],['构型','两级半液体'],['首飞','2025年2月'],['可复用','否']],
+  intro:'长八的运力增强型，面向中大型星座组网，2025年在文昌首飞。'},
+ {name:'长征十一号', short:'长十一', family:'长征系列', status:'现役',
+  aliases:['long march 11','cz-11'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'',
+  specs:[['全长','约21米'],['芯级直径','2米'],['起飞质量','约58吨'],['太阳同步运力','约500公斤'],['构型','四级固体'],['首飞','2015年'],['可复用','否']],
+  intro:'固体快速响应火箭，具备海上发射能力，可在数日内完成发射准备。'},
+ {name:'长征十二号', short:'长十二', family:'长征系列', status:'现役',
+  aliases:['long march 12','long march 12a','long march 12b','cz-12'],
+  manufacturer:'上海航天技术研究院',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/94/%E9%95%BF%E5%BE%81%E5%8D%81%E4%BA%8C%E5%8F%B7%E8%BF%90%E8%BD%BD%E7%81%AB%E7%AE%AD%EF%BC%88%E9%81%A5%E4%BA%8C%EF%BC%89%E7%82%B9%E7%81%AB%E8%B5%B7%E9%A3%9E.jpg/960px-%E9%95%BF%E5%BE%81%E5%8D%81%E4%BA%8C%E5%8F%B7%E8%BF%90%E8%BD%BD%E7%81%AB%E7%AE%AD%EF%BC%88%E9%81%A5%E4%BA%8C%EF%BC%89%E7%82%B9%E7%81%AB%E8%B5%B7%E9%A3%9E.jpg',
+  specs:[['全长','约62米'],['芯级直径','3.8米'],['起飞质量','约430吨'],['近地运力','约12吨 / 太阳同步约6吨'],['构型','两级液体（单芯级）'],['首飞','2024年11月'],['可复用','否（后续发展回收构型）']],
+  intro:'海南商业航天发射场首个发射的型号，国内直径最大的单芯级火箭，服务大型星座组网。'},
+ {name:'长征十号（系列）', short:'长十', family:'长征系列', status:'在研',
+  aliases:['long march 10','long march 10a','long march 10b','cz-10'],
+  manufacturer:'中国运载火箭技术研究院',
+  image:'',
+  specs:[['全长','约92米（基本型）/ 约67米（无助推A型）'],['芯级直径','5米'],['起飞质量','约2187吨（基本型）'],['近地运力','约70吨（基本型）/ 约14吨（A型）'],['构型','三级半液体（基本型）'],['首飞','计划2026年起'],['可复用','规划可回收构型']],
+  intro:'载人登月火箭，配套梦舟飞船与揽月着陆器；无助推的A型计划先行执行近地验证任务。'},
+ {name:'快舟一号甲', short:'快舟一甲', family:'快舟系列', status:'现役',
+  aliases:['kuaizhou-1a','kuaizhou 1a','kj-1a'],
+  manufacturer:'航天科工火箭技术有限公司',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/%E2%80%9C%E6%9C%80%E9%AB%98%E2%80%9D%E8%87%B4%E6%95%AC%EF%BC%9A%E5%BF%AB%E8%88%9F%E4%B8%80%E5%8F%B7%E7%94%B2%E8%BF%90%E8%BD%BD%E7%81%AB%E7%AE%AD%E8%87%B4%E6%95%AC%E6%AD%A6%E6%B1%89%E5%92%8C%E5%8C%BB%E6%8A%A4_2.png/960px-%E2%80%9C%E6%9C%80%E9%AB%98%E2%80%9D%E8%87%B4%E6%95%AC%EF%BC%9A%E5%BF%AB%E8%88%9F%E4%B8%80%E5%8F%B7%E7%94%B2%E8%BF%90%E8%BD%BD%E7%81%AB%E7%AE%AD%E8%87%B4%E6%95%AC%E6%AD%A6%E6%B1%89%E5%92%8C%E5%8C%BB%E6%8A%A4_2.png',
+  specs:[['全长','约20米'],['芯级直径','1.4米'],['起飞质量','约30吨'],['太阳同步运力','约200公斤'],['构型','三级固体'],['首飞','2017年'],['可复用','否']],
+  intro:'航天科工「快舟」商业固体火箭，主打快速响应与小载荷高频发射。'},
+ {name:'快舟十一号', short:'快舟十一', family:'快舟系列', status:'现役',
+  aliases:['kuaizhou-11','kuaizhou 11'],
+  manufacturer:'航天科工火箭技术有限公司',
+  image:'',
+  specs:[['全长','约29米'],['芯级直径','2.2米'],['起飞质量','约78吨'],['太阳同步运力','约1吨'],['构型','两级固体'],['首飞','2022年（成功）'],['可复用','否']],
+  intro:'快舟系列的运力放大版，固体火箭中运力居前。'},
+ {name:'谷神星一号', short:'谷神星', family:'谷神星系列', status:'现役',
+  aliases:['ceres-1','ceres 1','ceres-1s'],
+  manufacturer:'星河动力航天',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Ceres-1_Yao-4_carrier_rocket_launch.png/960px-Ceres-1_Yao-4_carrier_rocket_launch.png',
+  specs:[['全长','约20米'],['芯级直径','1.4米'],['起飞质量','约30吨'],['太阳同步运力','约300公斤（500km）'],['构型','四级固体'],['首飞','2020年'],['可复用','否']],
+  intro:'民营固体火箭的可靠性标杆，连续高成功率；海射型「谷神星一号海射型」从海上平台发射。'},
+ {name:'朱雀二号', short:'朱雀二', family:'朱雀系列', status:'现役',
+  aliases:['zhuque-2','zhuque 2','zq-2','zq-2e','zhuque-2e'],
+  manufacturer:'蓝箭航天',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/%E6%9C%B1%E9%9B%80%E4%BA%8C%E5%8F%B7%E7%81%AB%E7%AE%AD%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F%E4%B8%8E%E5%8F%91%E5%8A%A8%E6%9C%BA%E5%8C%B9%E9%85%8D%E9%AA%8C%E8%AF%811.png/960px-%E6%9C%B1%E9%9B%80%E4%BA%8C%E5%8F%B7%E7%81%AB%E7%AE%AD%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F%E4%B8%8E%E5%8F%91%E5%8A%A8%E6%9C%BA%E5%8C%B9%E9%85%8D%E9%AA%8C%E8%AF%811.png',
+  specs:[['全长','约49.5米'],['芯级直径','3.35米'],['起飞质量','约220吨'],['太阳同步运力','约2吨（改进E型约2.6吨）'],['构型','两级液体（液氧甲烷）'],['首飞','2022年12月'],['可复用','否']],
+  intro:'全球首款成功入轨的液氧甲烷火箭（蓝箭航天），天鹊发动机系列，酒泉发射。'},
+ {name:'朱雀三号', short:'朱雀三', family:'朱雀系列', status:'首飞验证期',
+  aliases:['zhuque-3','zq-3'],
+  manufacturer:'蓝箭航天',
+  image:'',
+  specs:[['全长','约76米'],['芯级直径','4.5米'],['近地运力','约18吨（一次性）/ 约12吨（回收）'],['构型','两级液体（液氧甲烷）'],['首飞','2025年'],['可复用','一级可回收（不锈钢箭体）']],
+  intro:'中国大型可复用液体火箭的先行者，瞄准高频复用发射，蓝箭航天研制。'},
+ {name:'双曲线一号', short:'双曲一', family:'双曲线系列', status:'现役',
+  aliases:['hyperbola-1','hyperbola 1'],
+  manufacturer:'星际荣耀',
+  image:'',
+  specs:[['全长','约20.8米'],['芯级直径','1.4米'],['起飞质量','约31吨'],['近地运力','约260公斤'],['构型','四级固体'],['首飞','2019年'],['可复用','否']],
+  intro:'中国民营航天首枚成功入轨的火箭（2019年），星际荣耀研制。'},
+ {name:'双曲线三号', short:'双曲三', family:'双曲线系列', status:'在研',
+  aliases:['hyperbola-3','hyperbola 3'],
+  manufacturer:'星际荣耀',
+  image:'',
+  specs:[['芯级直径','3.35米'],['近地运力','约8.4吨'],['构型','两级液体（液氧甲烷）'],['首飞','待定'],['可复用','一级可回收']],
+  intro:'星际荣耀的可回收中型液体火箭，验证垂直起降技术后向入轨发展。'},
+ {name:'力箭一号', short:'力箭一', family:'力箭系列', status:'现役',
+  aliases:['zk-1a','lijian-1','kinetica-1','lery-1'],
+  manufacturer:'中科宇航',
+  image:'',
+  specs:[['全长','约30米'],['芯级直径','2.65米'],['起飞质量','约135吨'],['太阳同步运力','约1.5吨（500km）'],['构型','四级固体'],['首飞','2022年'],['可复用','否']],
+  intro:'中科宇航（力箭系列）大型固体火箭，运载能力在国产固体火箭中位居前列。'},
+ {name:'力箭二号', short:'力箭二', family:'力箭系列', status:'在研',
+  aliases:['lijian-2','kinetica-2'],
+  manufacturer:'中科宇航',
+  image:'',
+  specs:[['芯级直径','3.35米'],['近地运力','约12吨'],['构型','两级液体'],['首飞','计划2026年'],['可复用','规划可回收']],
+  intro:'中科宇航的液体中型火箭，面向货运飞船与大型星座。'},
+ {name:'天龙二号', short:'天龙二', family:'天龙系列', status:'现役',
+  aliases:['tianlong-2','tianlong 2'],
+  manufacturer:'天兵科技',
+  image:'',
+  specs:[['全长','约35米'],['芯级直径','3.35米'],['起飞质量','约150吨'],['近地运力','约2吨'],['构型','两级液体（液氧煤油）'],['首飞','2023年4月'],['可复用','否']],
+  intro:'全球民营航天首款首飞即成功入轨的液体火箭（天兵科技），张家港智能制造基地产出。'},
+ {name:'天龙三号', short:'天龙三', family:'天龙系列', status:'在研',
+  aliases:['tianlong-3','tianlong 3'],
+  manufacturer:'天兵科技',
+  image:'',
+  specs:[['芯级直径','3.8米'],['近地运力','约17吨'],['构型','两级液体（液氧煤油）'],['首飞','待定'],['可复用','规划一级回收']],
+  intro:'对标猎鹰9的中型液体火箭，天兵科技旗舰产品，动力试车已完成。'},
+ {name:'引力一号', short:'引力一', family:'引力系列', status:'现役',
+  aliases:['gravity-1','gravity 1'],
+  manufacturer:'东方空间',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Gravity-1_Y2_launch_04.png/960px-Gravity-1_Y2_launch_04.png',
+  specs:[['全长','约30米'],['芯级直径','2.65米'],['起飞质量','约405吨'],['近地运力','约6.5吨 / 太阳同步约4.2吨'],['构型','三级半固体'],['首飞','2024年1月（海上）'],['可复用','否']],
+  intro:'全球最大固体运载火箭，东方空间研制，从海上平台发射，首创大运力固海路线。'},
+ {name:'捷龙三号', short:'捷龙三', family:'捷龙系列', status:'现役',
+  aliases:['jielong-3','jielong 3','jl-3'],
+  manufacturer:'中国长征火箭有限公司（航天科技）',
+  image:'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Jielong-3_Carrier_Rocket_Maidan_Flight.png/960px-Jielong-3_Carrier_Rocket_Maidan_Flight.png',
+  specs:[['全长','约31米'],['芯级直径','2.65米'],['起飞质量','约140吨'],['太阳同步运力','约1.5吨（500km）'],['构型','四级固体'],['首飞','2022年12月（海上）'],['可复用','否']],
+  intro:'航天科技集团旗下商业固体火箭，主打海上发射与国际化商业订单。'},
+ {name:'捷龙一号', short:'捷龙一', family:'捷龙系列', status:'现役',
+  aliases:['jielong-1','jielong 1','jl-1'],
+  manufacturer:'中国长征火箭有限公司（航天科技）',
+  image:'',
+  specs:[['全长','约24米'],['芯级直径','1.2米'],['起飞质量','约23吨'],['近地运力','约200公斤'],['构型','四级固体'],['首飞','2019年'],['可复用','否']],
+  intro:'小型商业固体火箭，灵活承接小卫星发射。'}
+];
+const ARCH_INDEX = (() => {
+  const m = new Map();
+  const nk = s => String(s || '').toLowerCase().replace(/[\s_-]+/g, '');
+  for (const r of ARCHIVE){
+    m.set(nk(r.name.replace(/（.*）/g, '')), r);
+    for (const a of r.aliases) m.set(nk(a), r);
+  }
+  return { map: m, nk };
+})();
+function matchArchive(cfg){
+  if (!cfg) return null;
+  const full = cfg.full_name || cfg.name || '';
+  const keys = [full, cfg.name || '', full.split('/')[0]];
+  for (const k of keys){
+    const hit = ARCH_INDEX.map.get(ARCH_INDEX.nk(k));
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/* ================= 全局状态 ================= */
+const settings = Object.assign({ scope:'cn', wiki:'off', notify:false, theme:'auto' }, store.get(LS_SETTINGS, {}));
+let launches = [];
+let wikiRows = [];
+let state = {
+  tab: settings.scope === 'global' ? 'global' : 'cn',
+  loading: true, cached: false, fetchedAt: 0, error: null,
+  provider: '', rocket: '', range: 0, q: '',
+  calY: new Date().getFullYear(), calM: new Date().getMonth(), calDay: null, calScope: 'cn'
+};
+let starred = new Set(store.get(LS_STAR, []));
+let notes = store.get(LS_NOTES, {});
+
+/* ================= 数据获取 ================= */
+async function loadLaunches(force){
+  const cache = store.get(LS_CACHE, null);
+  if (!force && cache && Date.now() - cache.fetched_at < TTL){
+    applyData(cache.results, false, cache.fetched_at);
+    return;
+  }
+  state.loading = true; state.error = null; renderAll();
+  try{
+    const res = await fetch(API_URL, { headers:{ 'Accept':'application/json' } });
+    if (res.status === 429) throw new Error('API 限流（每小时请求数已达上限），请稍后再试');
+    if (!res.ok) throw new Error('API 返回 HTTP ' + res.status);
+    const json = await res.json();
+    if (!json.results) throw new Error('API 数据格式异常');
+    store.set(LS_CACHE, { fetched_at: Date.now(), results: json.results });
+    applyData(json.results, false, Date.now());
+  }catch(e){
+    if (cache && cache.results){
+      applyData(cache.results, true, cache.fetched_at);
+      state.error = e.message;
+    }else{
+      state.loading = false; state.error = e.message; renderAll();
     }
-  </script>
+  }
+}
+function applyData(results, cached, fetchedAt){
+  launches = results; state.cached = cached; state.fetchedAt = fetchedAt;
+  state.loading = false; state.error = null;
+  renderAll();
+}
+
+/* ================= 维基补充源 ================= */
+async function loadWiki(){
+  wikiRows = [];
+  if (settings.wiki !== 'on'){ renderWiki(); return; }
+  try{
+    const year = new Date().getFullYear();
+    const api = 'https://zh.wikipedia.org/w/api.php?action=parse&format=json&origin=*&prop=text&page=' +
+      encodeURIComponent(year + '年航天活动列表');
+    const d = await (await fetch(api)).json();
+    if (!d.parse || !d.parse.text || !d.parse.text['*']) throw 0;
+    const doc = new DOMParser().parseFromString(d.parse.text['*'], 'text/html');
+    const RE = /长征|快舟|谷神星|朱雀|双曲线|力箭|捷龙|天龙|引力|星云|智神星|海燕|龙行/;
+    const now = Date.now();
+    const rows = [];
+    for (const tr of doc.querySelectorAll('table tr')){
+      const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
+      if (cells.length < 4) continue;
+      const dm = cells.join('|').match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+      if (!dm) continue;
+      const t = new Date(+dm[1], +dm[2]-1, +dm[3]).getTime();
+      if (t < now - 86400e3) continue;
+      if (/成功|失败|部分|取消|推迟无限期/.test(cells.join(''))) continue;
+      const rocket = cells.find(c => RE.test(c) && c.length <= 20);
+      if (!rocket) continue;
+      const ri = cells.indexOf(rocket);
+      const payload = (cells[ri+1] || '').slice(0, 40) || '待公布';
+      const siteCell = cells.find(c => /酒泉|西昌|太原|文昌|海上|海南/.test(c)) || '';
+      const site = (siteCell.match(/酒泉|西昌|太原|文昌|海南商业|海上/) || ['中国'])[0];
+      rows.push({ date: t, rocket, payload, site });
+    }
+    wikiRows = rows;
+  }catch(e){ wikiRows = []; }
+  renderWiki();
+}
+
+/* ================= 视图工具 ================= */
+const isChina = l =>
+  (l.pad && l.pad.location && l.pad.location.country_code === 'CHN') ||
+  /China Aerospace|CASIC|ExPace|Galactic Energy|LandSpace|iSpace|CAS Space|Space Pioneer|Orient Space|OriSpace|China Rocket|Deep Blue/i.test((l.launch_service_provider||{}).name || '');
+function providerZh(l){
+  const n = (l.launch_service_provider || {}).name || '未知机构';
+  for (const [re, zh] of PROVIDER_ZH) if (re.test(n)) return zh;
+  return n;
+}
+function siteZh(l){
+  const loc = (l.pad && l.pad.location && l.pad.location.name) || '';
+  for (const [re, zh] of SITE_ZH) if (re.test(loc)) return zh;
+  if (loc) return loc.split(',')[0];
+  return (l.pad && l.pad.name) || '—';
+}
+function ccZh(l){
+  const cc = l.pad && l.pad.location && l.pad.location.country_code;
+  return CC_ZH[cc] || cc || '';
+}
+function precisionInfo(l){
+  const a = (l.net_precision || {}).abbrev || 'DAY';
+  if (['MIN','SEC','T-0'].includes(a)) return { level:'exact', badge:'' };
+  if (a === 'HR') return { level:'hour', badge:'精确到小时' };
+  if (a === 'DAY') return { level:'day', badge:'日期级预报' };
+  return { level:'coarse', badge:'粗略预报' };
+}
+function statusInfo(l){ const s = STATUS_ZH[(l.status||{}).abbrev]; return s ? {t:s[0],c:s[1]} : {t:(l.status||{}).abbrev||'未知',c:'muted'}; }
+function statusHTML(l){
+  const s = statusInfo(l);
+  return `<span class="status s-${s.c}"><i></i>${esc(s.t)}</span>`;
+}
+function nameParts(l){
+  const raw = l.name || '';
+  const i = raw.indexOf(' | ');
+  const rocketEn = i >= 0 ? raw.slice(0, i).trim() : raw.trim();
+  let mission = i >= 0 ? raw.slice(i + 3).trim() : '';
+  const mn = (l.mission && l.mission.name || '').trim();
+  if (mn && mn !== rocketEn && !/unknown/i.test(mn)) mission = mn;
+  if (/^unknown/i.test(mission)) mission = '';
+  return { rocketEn, mission };
+}
+function displayRocket(l){
+  const arch = matchArchive(l.rocket && l.rocket.configuration);
+  const en = nameParts(l).rocketEn;
+  return { zh: arch ? arch.name : en, arch, en };
+}
+function orbitZh(l){
+  const o = (l.mission && l.mission.orbit) || {};
+  return ORBIT_ZH[o.abbrev] || ORBIT_ZH[o.name] || o.name || '';
+}
+function typeZh(l){
+  const t = (l.mission && l.mission.type) || '';
+  return TYPE_ZH[t] || t;
+}
+function fmtLocal(d, opts){
+  const y = d.getFullYear() !== new Date().getFullYear() ? d.getFullYear() + '年' : '';
+  let s = `${y}${d.getMonth()+1}月${d.getDate()}日`;
+  if (opts && opts.dateOnly) return s;
+  return s + ` ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fmtUTC(d){
+  return `UTC ${d.getUTCMonth()+1}/${d.getUTCDate()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+function cdText(ms){
+  if (ms <= 0) return '已进入发射窗口';
+  const s = Math.floor(ms/1000), d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), sec = s%60;
+  return d > 0 ? `${d}天 ${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(h)}:${pad(m)}:${pad(sec)}`;
+}
+function cdDisplay(l){
+  const t = new Date(l.net) - Date.now();
+  if (t <= 0) return '进入窗口';
+  const prec = precisionInfo(l);
+  if (prec.level === 'day' || prec.level === 'coarse') return 'D-' + Math.max(1, Math.ceil(t/86400e3));
+  return cdText(t);
+}
+const isStale = l => new Date(l.net) < new Date(Date.now() - 2*3600e3) && !['Success','Failure','In Flight'].includes((l.status||{}).abbrev);
+function imgHTML(srcs, alt, cls){
+  const list = (srcs || []).filter(Boolean);
+  if (!list.length) return `<div class="ph ${cls||''}"><span>🚀</span></div>`;
+  return `<img class="${cls||''}" src="${esc(list[0])}" alt="${esc(alt)}" loading="lazy"
+    data-alts='${esc(JSON.stringify(list.slice(1)))}' onerror="imgFallback(this)">`;
+}
+window.imgFallback = el => {
+  let alts = [];
+  try{ alts = JSON.parse(el.dataset.alts || '[]'); }catch(e){}
+  if (alts.length){ el.src = alts.shift(); el.dataset.alts = JSON.stringify(alts); }
+  else{ const ph = document.createElement('div'); ph.className = 'ph ' + (el.className || ''); ph.innerHTML = '<span>🚀</span>'; el.replaceWith(ph); }
+};
+function toast(msg){
+  let t = $('#toast');
+  if (!t){ t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.display = 'block';
+  t.style.animation = 'none'; t.offsetHeight; t.style.animation = '';
+  clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 2200);
+}
+
+/* ================= 过滤 ================= */
+function currentScopeList(){
+  if (state.tab === 'global') return launches;
+  if (state.tab === 'starred') return launches.filter(l => starred.has(l.id));
+  return launches.filter(isChina);
+}
+function filteredList(){
+  let arr = currentScopeList();
+  if (state.provider) arr = arr.filter(l => (l.launch_service_provider||{}).name === state.provider);
+  if (state.rocket){
+    const k = ARCH_INDEX.nk(state.rocket);
+    arr = arr.filter(l => ARCH_INDEX.nk(nameParts(l).rocketEn).includes(k) || matchArchive(l.rocket && l.rocket.configuration)?.name === state.rocket);
+  }
+  if (state.range > 0){
+    const lim = Date.now() + state.range * 86400e3;
+    arr = arr.filter(l => !isStale(l) && new Date(l.net).getTime() <= lim);
+  }
+  if (state.q){
+    const q = state.q.toLowerCase();
+    arr = arr.filter(l => {
+      const arch = matchArchive(l.rocket && l.rocket.configuration);
+      const hay = [l.name, l.mission && l.mission.name, (l.launch_service_provider||{}).name, providerZh(l), arch && arch.name, siteZh(l), (l.pad||{}).name, (l.pad&&l.pad.location||{}).name]
+        .join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  arr = [...arr].sort((a, b) => (isStale(a) - isStale(b)) || (new Date(a.net) - new Date(b.net)));
+  return arr;
+}
+
+/* ================= 渲染 ================= */
+function renderAll(){
+  renderBanner(); renderHero(); renderTabs(); renderFilters(); renderList(); renderCalendar(); renderUpdated(); moveGlider();
+}
+
+function renderBanner(){
+  const b = $('#banner');
+  if (state.cached && state.fetchedAt){
+    b.textContent = `当前显示本地缓存数据（API 限流或网络不可用）。缓存时间：${new Date(state.fetchedAt).toLocaleTimeString('zh-CN')}，可稍后点右上角「⟳」刷新。`;
+    b.classList.remove('hidden');
+  } else if (state.error){
+    b.textContent = state.error;
+    b.classList.remove('hidden');
+  } else b.classList.add('hidden');
+}
+function renderUpdated(){
+  $('#data-updated').textContent = state.fetchedAt
+    ? `更新于 ${new Date(state.fetchedAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}${state.cached ? ' · 缓存' : ''}` : '';
+}
+function moveGlider(){
+  const a = document.querySelector('.tab.active'), g = $('#tab-glider');
+  if (!a || !g) return;
+  g.style.left = a.offsetLeft + 'px';
+  g.style.width = a.offsetWidth + 'px';
+}
+function renderTabs(){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === state.tab));
+  const cn = launches.filter(isChina).length;
+  $('#n-cn').textContent = cn ? String(cn) : '';
+  $('#n-global').textContent = launches.length ? String(launches.length) : '';
+  $('#n-starred').textContent = starred.size ? String(starred.size) : '';
+  $('#filters').classList.toggle('hidden', state.tab === 'calendar');
+  $('#list').classList.toggle('hidden', state.tab === 'calendar');
+  $('#calendar').classList.toggle('hidden', state.tab !== 'calendar');
+  $('#wiki-sect').classList.toggle('hidden', !(state.tab === 'cn' && wikiRows.length));
+  requestAnimationFrame(moveGlider);
+}
+
+function metaCell(k, v){
+  return `<div class="m"><div class="k">${esc(k)}</div><div class="v">${v}</div></div>`;
+}
+function renderHero(){
+  const hero = $('#hero');
+  let arr = state.tab === 'global' ? launches : launches.filter(isChina);
+  if (state.tab === 'starred') arr = launches.filter(l => starred.has(l.id));
+  arr = arr.filter(l => !isStale(l)).sort((a, b) => new Date(a.net) - new Date(b.net));
+  if (!arr.length){ hero.classList.add('hidden'); return; }
+  const l = arr[0];
+  const { rocketEn, mission } = nameParts(l);
+  const { zh: rocketZh, arch } = displayRocket(l);
+  const d = new Date(l.net), prec = precisionInfo(l);
+  const srcs = [l.image, arch && arch.image, l.rocket && l.rocket.configuration && l.rocket.configuration.image_url];
+  const live = l.webcast_live;
+  const soon = d - Date.now() < 24*3600e3;
+  const win = (l.window_start && l.window_end)
+    ? `${esc(new Date(l.window_start).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}))} – ${esc(new Date(l.window_end).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}))}` : '—';
+  hero.innerHTML = `
+    <div class="hero-body">
+      <div class="kicker">下次发射 · ${state.tab === 'global' ? '全球' : '中国'}${live ? ' · <span class="live-dot"><i></i>直播中</span>' : ''}</div>
+      <h1 class="hero-title">${esc(mission || rocketZh)}</h1>
+      <div class="hero-rocket">${mission ? `火箭 <b>${esc(rocketZh)}</b>` : '载荷 / 任务待公布'}${arch ? '<span class="tag">档案</span>' : ''}</div>
+      <div class="hero-meta">
+        ${metaCell('发射机构', esc(providerZh(l)))}
+        ${metaCell('发射地点', esc(siteZh(l)))}
+        ${metaCell('发射时间', `${esc(fmtLocal(d, {dateOnly: prec.level === 'day' || prec.level === 'coarse'}))}${prec.level === 'hour' ? ' 前后' : ''} <small>· ${esc(fmtUTC(d))}</small>`)}
+        ${metaCell('发射窗口', win)}
+      </div>
+      <div class="hero-clock ${soon ? 'urgent' : ''}">
+        <div class="t" data-cd="${l.id}">${esc(cdDisplay(l))}</div>
+        <div class="l">距发射${prec.level === 'day' || prec.level === 'coarse' ? ' · 按日期估算' : ''}${prec.badge ? ' · ' + esc(prec.badge) : ''}</div>
+      </div>
+      <div class="hero-actions">
+        <button class="star-btn ${starred.has(l.id) ? 'on' : ''}" data-star="${l.id}" aria-label="关注此次发射">${starred.has(l.id) ? '★' : '☆'}</button>
+        <button class="btn primary" data-detail="${l.id}">查看发射详情</button>
+        ${live || (l.vidURLs||[]).length ? '<a class="btn ghost" target="_blank" rel="noopener" href="' + esc(((l.vidURLs||[]).slice().sort((a,b)=>a.priority-b.priority)[0]||{}).url || '#') + '">观看直播 ↗</a>' : ''}
+      </div>
+    </div>
+    <div class="hero-img">${imgHTML(srcs, rocketZh, '')}</div>`;
+  hero.classList.remove('hidden');
+}
+
+function renderFilters(){
+  const ps = $('#f-provider'), rs = $('#f-rocket');
+  const provs = [...new Set(currentScopeList().map(l => (l.launch_service_provider||{}).name).filter(Boolean))].sort();
+  const rockets = [...new Set(currentScopeList().map(l => displayRocket(l).zh).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh'));
+  const keepP = state.provider, keepR = state.rocket;
+  ps.innerHTML = '<option value="">全部机构</option>' + provs.map(p => {
+    const l0 = currentScopeList().find(l => (l.launch_service_provider||{}).name === p);
+    return `<option value="${esc(p)}">${esc(providerZh(l0||{}))}</option>`;
+  }).join('');
+  rs.innerHTML = '<option value="">全部火箭</option>' + rockets.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  ps.value = keepP; rs.value = keepR;
+}
+
+function cardHTML(l, i){
+  const { rocketEn, mission } = nameParts(l);
+  const { zh: rocketZh, arch } = displayRocket(l);
+  const d = new Date(l.net), prec = precisionInfo(l);
+  const stale = isStale(l);
+  const srcs = [l.image, arch && arch.image, l.rocket && l.rocket.configuration && l.rocket.configuration.image_url];
+  const cdCls = stale ? 'stale' : (prec.level === 'day' || prec.level === 'coarse') ? 'day' : (d - Date.now() < 24*3600e3 ? 'soon' : '');
+  const cdShow = stale ? '时间待更新' : cdDisplay(l);
+  const delay = Math.min((i || 0) * 40, 360);
+  return `<article class="card" data-id="${l.id}" style="animation-delay:${delay}ms">
+    <div class="thumb">${imgHTML(srcs, rocketZh, '')}${l.webcast_live ? '<span class="live-badge"><i></i>直播中</span>' : ''}</div>
+    <div class="card-main">
+      <div class="card-title">${esc(mission || rocketZh)}</div>
+      <div class="card-rocket">${mission ? `火箭 ${esc(rocketZh)}` : '载荷 / 任务待公布'}${arch ? '<span class="tag">档案</span>' : ''}</div>
+      <div class="card-meta">${esc(providerZh(l))}${state.tab !== 'global' && !isChina(l) ? '' : ' · ' + esc(ccZh(l))} · ${esc(siteZh(l))}</div>
+      <div class="card-time">${esc(fmtLocal(d, {dateOnly: prec.level === 'day' || prec.level === 'coarse'}))}${prec.level === 'hour' ? ' 前后' : ''} <small>· ${esc(fmtUTC(d))}${prec.badge ? ' · ' + esc(prec.badge) : ''}</small></div>
+      <div class="card-foot">${statusHTML(l)}<span style="display:flex;align-items:center;gap:10px"><span class="card-go">详情</span><span class="cd ${cdCls}" data-cd="${l.id}">${esc(cdShow)}</span></span></div>
+    </div>
+    <button class="star-btn ${starred.has(l.id) ? 'on' : ''}" data-star="${l.id}" aria-label="关注此次发射">${starred.has(l.id) ? '★' : '☆'}</button>
+  </article>`;
+}
+function renderList(){
+  const list = $('#list'), empty = $('#empty');
+  if (state.loading){
+    list.innerHTML = '<div class="empty" style="grid-column:1/-1"><span class="spinner"></span><br><br>正在从 Launch Library 2 拉取发射数据…</div>';
+    empty.classList.add('hidden'); return;
+  }
+  if (state.error && !launches.length){
+    list.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">📡</div>数据加载失败：${esc(state.error)}<br><br><button class="btn primary" onclick="loadLaunches(true)">重试</button></div>`;
+    empty.classList.add('hidden'); return;
+  }
+  const arr = filteredList();
+  list.innerHTML = arr.map((l, i) => cardHTML(l, i)).join('');
+  empty.classList.toggle('hidden', arr.length > 0);
+  if (!arr.length){
+    empty.innerHTML = state.tab === 'starred' && !starred.size
+      ? '<div class="big">☆</div>还没有关注的发射<br><span style="color:var(--dim)">点击卡片右上角的 ☆ 即可关注，发射前可收到提醒</span>'
+      : '<div class="big">🔭</div>当前筛选条件下没有发射记录<br><span style="color:var(--dim)">试试放宽筛选或切换时间范围</span>';
+  }
+}
+function renderWiki(){
+  const sect = $('#wiki-sect');
+  if (!wikiRows.length || state.tab !== 'cn'){ sect.classList.add('hidden'); return; }
+  $('#wiki-body').innerHTML = wikiRows.slice(0, 60).map(r => `
+    <tr><td>${new Date(r.date).getMonth()+1}月${new Date(r.date).getDate()}日</td>
+    <td><b>${esc(r.rocket)}</b></td><td>${esc(r.payload)}</td><td>${esc(r.site)}</td></tr>`).join('');
+  sect.classList.remove('hidden');
+}
+
+/* ================= 月历 ================= */
+function renderCalendar(){
+  document.querySelectorAll('#cal-scope button').forEach(x => x.classList.toggle('active', x.dataset.calScope === state.calScope));
+  const y = state.calY, m = state.calM;
+  $('#cal-title').textContent = `${y}年${m+1}月`;
+  const first = new Date(y, m, 1);
+  let lead = (first.getDay() + 6) % 7;
+  const days = new Date(y, m+1, 0).getDate();
+  const scope = state.calScope === 'global' ? launches : launches.filter(isChina);
+  const byDay = {};
+  for (const l of scope){
+    const d = new Date(l.net);
+    if (d.getFullYear() === y && d.getMonth() === m){
+      (byDay[d.getDate()] = byDay[d.getDate()] || []).push(l);
+    }
+  }
+  let html = ['一','二','三','四','五','六','日'].map(x => `<div class="cal-dow">${x}</div>`).join('');
+  for (let i = 0; i < lead; i++) html += '<div class="cal-cell dim"></div>';
+  const today = new Date();
+  for (let day = 1; day <= days; day++){
+    const evs = byDay[day] || [];
+    const isToday = today.getFullYear() === y && today.getMonth() === m && today.getDate() === day;
+    html += `<div class="cal-cell ${evs.length ? 'has' : ''} ${isToday ? 'today' : ''}" data-day="${day}">
+      <span class="d">${day}</span>
+      ${evs.slice(0, 2).map(l => `<div class="cal-ev ${isChina(l) ? 'cn' : ''}"><i></i>${esc(displayRocket(l).zh)}</div>`).join('')}
+      ${evs.length > 2 ? `<div class="cal-ev"><i></i>+${evs.length - 2}</div>` : ''}
+    </div>`;
+  }
+  $('#cal-grid').innerHTML = html;
+  renderCalDayList();
+}
+function renderCalDayList(){
+  const y = state.calY, m = state.calM, day = state.calDay;
+  const box = $('#cal-day-list');
+  if (!day){ box.innerHTML = ''; return; }
+  const scope = state.calScope === 'global' ? launches : launches.filter(isChina);
+  const evs = scope.filter(l => { const d = new Date(l.net); return d.getFullYear() === y && d.getMonth() === m && d.getDate() === day; })
+    .sort((a, b) => new Date(a.net) - new Date(b.net));
+  box.innerHTML = `<div class="cal-note" style="grid-column:1/-1">${m+1}月${day}日 · ${evs.length} 次发射</div>` + evs.map((l, i) => cardHTML(l, i)).join('');
+}
+
+/* ================= 详情弹窗 ================= */
+function sourceLinks(l, arch){
+  const { rocketEn, mission } = nameParts(l);
+  const qRocket = arch ? arch.name : rocketEn;
+  const q = encodeURIComponent(mission ? `${qRocket} ${mission}` : `${qRocket} 发射`);
+  const year = new Date().getFullYear();
+  return [
+    ['必应资讯', `https://cn.bing.com/news/search?q=${q}`],
+    ['微博 ChinaSpaceflight', 'https://s.weibo.com/weibo?q=' + encodeURIComponent(qRocket)],
+    ['微信公众号（搜狗）', `https://weixin.sogou.com/weixin?type=2&query=${q}`],
+    ['知乎', `https://www.zhihu.com/search?type=content&q=${q}`],
+    ['B 站', `https://search.bilibili.com/all?keyword=${q}`],
+    [`维基 ${year} 年列表`, `https://zh.wikipedia.org/wiki/${encodeURIComponent(year + '年航天活动列表')}`],
+    ['LL2 数据页', (l.url || '#')]
+  ];
+}
+function openDetail(id){
+  const l = launches.find(x => x.id === id);
+  if (!l) return;
+  const { rocketEn, mission } = nameParts(l);
+  const { zh: rocketZh, arch } = displayRocket(l);
+  const d = new Date(l.net), prec = precisionInfo(l);
+  const cfg = (l.rocket || {}).configuration || {};
+  const m = l.mission || {};
+  const vid = (l.vidURLs || []).slice().sort((a, b) => a.priority - b.priority);
+  const heroSrc = [l.image, arch && arch.image, cfg.image_url];
+  const archSrc = [arch && arch.image, cfg.image_url, l.image];
+  const note = (notes[l.id] || '');
+  const specRows = (arch && arch.specs || []).map(([k, v]) => `<div class="spec"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('');
+  const ll2Specs = [
+    ['全长', cfg.length ? cfg.length + ' 米' : ''], ['直径', cfg.diameter ? cfg.diameter + ' 米' : ''],
+    ['起飞质量', cfg.launch_mass ? cfg.launch_mass + ' 吨' : ''], ['一级推力', cfg.to_thrust ? cfg.to_thrust + ' kN' : ''],
+    ['近地运力', cfg.leo_capacity ? cfg.leo_capacity + ' kg' : ''], ['同步转移运力', cfg.gto_capacity ? cfg.gto_capacity + ' kg' : ''],
+    ['级数', cfg.max_stage ? (cfg.min_stage === cfg.max_stage ? cfg.max_stage + ' 级' : cfg.min_stage + '–' + cfg.max_stage + ' 级') : ''],
+    ['首飞', cfg.maiden_flight || ''], ['制造商', ((cfg.manufacturer || {}).name) || '']
+  ].filter(([, v]) => v);
+  const stats = [
+    cfg.total_launch_count != null ? ['累计发射', cfg.total_launch_count + ' 次'] : null,
+    cfg.successful_launches != null ? ['成功', cfg.successful_launches + ' 次'] : null,
+    cfg.failed_launches != null ? ['失败', cfg.failed_launches + ' 次'] : null,
+    cfg.pending_launches != null ? ['待发射', cfg.pending_launches + ' 次'] : null,
+    cfg.reusable != null ? ['可复用', cfg.reusable ? '是' : '否'] : null
+  ].filter(Boolean).map(([k, v]) => `<div class="spec"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('');
+  const clockCls = (d - Date.now() < 24*3600e3) ? 'urgent' : '';
+
+  $('#modal-root').innerHTML = `
+  <div class="modal-backdrop" id="detail-backdrop">
+    <div class="modal" role="dialog" aria-label="发射详情">
+      <button class="modal-close" data-close aria-label="关闭">✕</button>
+      <div class="detail-hero">
+        ${imgHTML(heroSrc, rocketZh, '')}
+        <div class="grad"></div>
+        <div class="detail-hero-body">
+          <div style="display:flex;gap:14px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+            ${statusHTML(l)}${l.webcast_live ? '<span class="live-badge" style="position:static"><i></i>直播中</span>' : ''}
+            ${prec.badge ? `<span class="tag" style="background:var(--surface)">${esc(prec.badge)}</span>` : ''}
+          </div>
+          <h2>${esc(mission || rocketZh)}</h2>
+          <div class="sub">${mission ? '火箭 ' + esc(rocketZh === (arch && arch.name) ? rocketEn : rocketZh) : '载荷 / 任务待公布'}</div>
+          <div class="detail-actions">
+            <button class="star-btn ${starred.has(l.id) ? 'on' : ''}" data-star="${l.id}" style="font-size:21px" aria-label="关注此次发射">${starred.has(l.id) ? '★' : '☆'}</button>
+            <span style="color:var(--text-2);font-size:13.5px;font-variant-numeric:tabular-nums">${esc(fmtLocal(d, {dateOnly: prec.level === 'day' || prec.level === 'coarse'}))}${prec.level === 'hour' ? ' 前后' : ''} <small style="color:var(--dim)">· ${esc(fmtUTC(d))}</small></span>
+            <span class="detail-clock ${clockCls}" data-cd="${l.id}">${esc(cdDisplay(l))}</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-body">
+        <div class="sect">
+          <h3>这次发射要做什么</h3>
+          ${m.description
+            ? `<div class="desc-box">${esc(m.description)}</div>
+               <div class="note-hint">以上为 LL2 数据源收录的任务说明（多为英文原文）。中文解读请用下方「多来源确认」搜索微信公众号 / 知乎，并记在笔记里。</div>`
+            : `<div class="desc-box">暂无任务说明。${isChina(l) ? '中国任务的信息通常在发射前几天由官方与媒体公布，可用下方「多来源确认」入口检索。' : '可通过下方链接检索。'}</div>`}
+          <div style="margin-top:14px" class="kv">
+            ${typeZh(l) && typeZh(l) !== '待公布' ? `<div class="row"><span class="k">任务类型</span><span class="v">${esc(typeZh(l))}</span></div>` : ''}
+            ${orbitZh(l) && orbitZh(l) !== '待公布' ? `<div class="row"><span class="k">目标轨道</span><span class="v">${esc(orbitZh(l))}</span></div>` : ''}
+            <div class="row"><span class="k">发射机构</span><span class="v">${esc(providerZh(l))}</span></div>
+            <div class="row"><span class="k">发射地点</span><span class="v">${esc(siteZh(l))}${ccZh(l) ? ' · ' + esc(ccZh(l)) : ''}</span></div>
+            <div class="row"><span class="k">发射工位</span><span class="v">${esc((l.pad||{}).name || '—')}</span></div>
+            ${(l.window_start && l.window_end) ? `<div class="row"><span class="k">发射窗口</span><span class="v">${esc(new Date(l.window_start).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}))} – ${esc(new Date(l.window_end).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}))}</span></div>` : ''}
+            ${l.probability != null ? `<div class="row"><span class="k">发射概率</span><span class="v">${esc(l.probability)}%</span></div>` : ''}
+            ${l.weather_concerns ? `<div class="row"><span class="k">天气关注</span><span class="v">${esc(l.weather_concerns)}</span></div>` : ''}
+          </div>
+          ${(l.updates || []).length ? `<div style="margin-top:12px">${l.updates.slice(0, 3).map(u => `<div class="update-item"><b>${esc(new Date(u.created_on).toLocaleDateString('zh-CN'))}</b> ${esc(u.comment)}</div>`).join('')}</div>` : ''}
+        </div>
+
+        <div class="sect">
+          <h3>火箭档案 · ${esc(arch ? arch.name : rocketEn)}</h3>
+          <div class="rocket-flex">
+            <div class="rimg">${imgHTML(archSrc, rocketZh, '')}</div>
+            <div class="rinfo">
+              ${arch ? `<div class="rocket-intro">${esc(arch.intro)}<br><span class="sub">制造商：${esc(arch.manufacturer)} · 状态：${esc(arch.status)}</span></div>
+              <div class="spec-grid">${specRows}</div>`
+              : ll2Specs.length || stats.length
+                ? `<div class="rocket-intro">该型号暂未收录中文档案，以下为数据源参数。</div>
+                   <div class="spec-grid">${ll2Specs.map(([k, v]) => `<div class="spec"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('')}${stats}</div>`
+                : `<div class="rocket-intro">该型号暂无收录资料。可通过下方「多来源确认」检索了解。</div>`}
+              ${arch && stats ? `<div class="spec-grid">${stats}</div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <h3>我的中文笔记 / 解读（自动保存）</h3>
+          <textarea class="note-area" id="note-input" placeholder="粘贴公众号文章链接、写点这次任务的背景和意义…">${esc(note)}</textarea>
+          <div class="note-hint">微信公众号（如「太空科普君」「风雷激飞鸣镝」）无法被自动抓取，可从下方入口搜到文章后把链接和要点贴在这里。</div>
+        </div>
+
+        <div class="sect">
+          <h3>多来源确认</h3>
+          <div class="link-row">
+            ${sourceLinks(l, arch).map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join('')}
+            ${vid.map(v => `<a href="${esc(v.url)}" target="_blank" rel="noopener">直播 · ${esc(v.title || v.source || '官方')}</a>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.body.style.overflow = 'hidden';
+  const ta = $('#note-input');
+  ta.dataset.lid = l.id;
+  ta.addEventListener('input', () => {
+    notes[l.id] = ta.value; store.set(LS_NOTES, notes);
+  });
+}
+function closeDetail(){
+  const ta = document.querySelector('#note-input');
+  if (ta && ta.dataset.lid !== undefined){
+    notes[ta.dataset.lid] = ta.value; store.set(LS_NOTES, notes);
+    if (!notes[ta.dataset.lid]) delete notes[ta.dataset.lid];
+    store.set(LS_NOTES, notes);
+  }
+  $('#modal-root').innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+/* ================= 收藏与通知 ================= */
+function toggleStar(id){
+  if (starred.has(id)){ starred.delete(id); toast('已取消关注'); }
+  else{ starred.add(id); toast('已关注，发射前将提醒'); }
+  store.set(LS_STAR, [...starred]);
+  renderAll();
+  if ($('#detail-backdrop')) openDetail(id);
+}
+function checkNotify(){
+  if (!settings.notify || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  const notified = store.get(LS_NOTIFIED, {});
+  for (const l of launches){
+    if (!starred.has(l.id)) continue;
+    const prec = precisionInfo(l);
+    if (prec.level === 'day' || prec.level === 'coarse') continue;
+    const t = new Date(l.net) - Date.now();
+    for (const th of [30, 10]){
+      const key = `${l.id}_${th}`;
+      if (t > 0 && t <= th * 60000 && !notified[key]){
+        notified[key] = 1;
+        try{
+          new Notification(`${th} 分钟后发射：${nameParts(l).mission || displayRocket(l).zh}`,
+            { body: `${displayRocket(l).zh} · ${siteZh(l)} · ${fmtLocal(new Date(l.net))}` });
+        }catch(e){}
+      }
+    }
+  }
+  store.set(LS_NOTIFIED, notified);
+}
+
+/* ================= 事件绑定 ================= */
+document.addEventListener('click', e => {
+  const star = e.target.closest('[data-star]');
+  if (star){ e.stopPropagation(); toggleStar(star.dataset.star); return; }
+  const det = e.target.closest('[data-detail]');
+  if (det){ openDetail(det.dataset.detail); return; }
+  const card = e.target.closest('.card[data-id]');
+  if (card){ openDetail(card.dataset.id); return; }
+  const tab = e.target.closest('.tab');
+  if (tab){ state.tab = tab.dataset.tab; state.calDay = null; renderAll(); return; }
+  const cell = e.target.closest('.cal-cell.has');
+  if (cell){
+    const day = +cell.dataset.day;
+    state.calDay = state.calDay === day ? null : day;
+    renderCalDayList(); return;
+  }
+  if (e.target.closest('[data-close]') || e.target.id === 'detail-backdrop') closeDetail();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape'){ closeDetail(); $('#settings-backdrop').classList.add('hidden'); document.body.style.overflow=''; } });
+$('#f-provider').addEventListener('change', e => { state.provider = e.target.value; renderList(); renderHero(); });
+$('#f-rocket').addEventListener('change', e => { state.rocket = e.target.value; renderList(); });
+$('#f-range').addEventListener('change', e => { state.range = +e.target.value; renderList(); });
+let qTimer;
+$('#f-search').addEventListener('input', e => { clearTimeout(qTimer); qTimer = setTimeout(() => { state.q = e.target.value.trim(); renderList(); }, 250); });
+$('#cal-prev').addEventListener('click', () => { state.calM--; if (state.calM < 0){ state.calM = 11; state.calY--; } state.calDay = null; renderCalendar(); });
+$('#cal-next').addEventListener('click', () => { state.calM++; if (state.calM > 11){ state.calM = 0; state.calY++; } state.calDay = null; renderCalendar(); });
+$('#cal-scope').addEventListener('click', e => {
+  const b = e.target.closest('[data-cal-scope]');
+  if (!b || state.calScope === b.dataset.calScope) return;
+  state.calScope = b.dataset.calScope;
+  state.calDay = null;
+  renderCalendar();
+});
+$('#btn-theme').addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  settings.theme = cur === 'light' ? 'dark' : 'light';
+  store.set(LS_SETTINGS, settings);
+  applyTheme();
+  $('#s-theme').value = settings.theme;
+});
+$('#btn-refresh').addEventListener('click', async e => {
+  e.currentTarget.disabled = true;
+  await loadLaunches(true); await loadWiki();
+  e.currentTarget.disabled = false;
+  toast(state.cached ? 'API 未返回新数据，仍为缓存' : '已更新');
+});
+$('#btn-settings').addEventListener('click', () => {
+  $('#s-scope').value = settings.scope; $('#s-wiki').value = settings.wiki; $('#s-theme').value = settings.theme;
+  $('#s-notify').textContent = settings.notify && Notification?.permission === 'granted' ? '已开启 ✓' : '开启通知';
+  $('#settings-backdrop').classList.remove('hidden');
+});
+$('#settings-close').addEventListener('click', () => $('#settings-backdrop').classList.add('hidden'));
+$('#settings-backdrop').addEventListener('click', e => { if (e.target.id === 'settings-backdrop') e.target.classList.add('hidden'); });
+$('#s-scope').addEventListener('change', e => { settings.scope = e.target.value; store.set(LS_SETTINGS, settings); toast('已保存，下次打开生效'); });
+$('#s-theme').addEventListener('change', e => { settings.theme = e.target.value; store.set(LS_SETTINGS, settings); applyTheme(); });
+$('#s-wiki').addEventListener('change', async e => { settings.wiki = e.target.value; store.set(LS_SETTINGS, settings); await loadWiki(); });
+$('#s-notify').addEventListener('click', async () => {
+  if (typeof Notification === 'undefined'){ toast('此浏览器不支持通知'); return; }
+  let perm = Notification.permission;
+  if (perm !== 'granted') perm = await Notification.requestPermission();
+  if (perm === 'granted'){ settings.notify = true; store.set(LS_SETTINGS, settings); $('#s-notify').textContent = '已开启 ✓'; toast('通知已开启，关注发射即可生效'); }
+  else toast('通知权限被拒绝，可在浏览器设置中修改');
+});
+$('#s-clear').addEventListener('click', () => {
+  [LS_CACHE, LS_STAR, LS_NOTES, LS_NOTIFIED].forEach(store.del);
+  starred = new Set(); notes = {};
+  toast('已清除缓存、收藏与笔记'); renderAll();
+});
+setInterval(() => {
+  document.querySelectorAll('[data-cd]').forEach(el => {
+    const l = launches.find(x => x.id === el.dataset.cd);
+    if (!l) return;
+    el.textContent = cdDisplay(l);
+  });
+}, 1000);
+setInterval(checkNotify, 30000);
+window.addEventListener('resize', moveGlider);
+
+/* ================= 启动 ================= */
+(async function init(){
+  // 浏览器刷新时会自动恢复表单值，与内存筛选状态不一致 → 统一重置
+  $('#f-search').value = ''; $('#f-provider').value = ''; $('#f-rocket').value = ''; $('#f-range').value = '0';
+  applyTheme();
+  await loadLaunches(false);
+  moveGlider();
+  if (settings.wiki === 'on') loadWiki();
+})();
+</script>
 </body>
 </html>
